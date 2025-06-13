@@ -1,11 +1,11 @@
 -- https://github.com/LorekeeperZinnia/Dex
 
 --[[
-	New Dex Explorer
+	New Dex
 	Final Version
 	Developed by Moon
 	Modified for Infinite Yield
-	Remake by re_sistance
+	Theme and semi-script revamp by re_sistance
 	Dex is a debugging suite designed to help the user debug games and find any potential vulnerabilities.
 ]]
 
@@ -53,8 +53,8 @@ local function main()
 	local tree,listEntries,explorerOrders,searchResults,specResults = {},{},{},{},{}
 	local expanded
 	local entryTemplate,treeFrame,toolBar,descendantAddedCon,descendantRemovingCon,itemChangedCon
-	local ffa = game.FindFirstAncestorWhichIsA
-	local getDescendants = game.GetDescendants
+	local ffa = game["Run Service"].Parent.FindFirstAncestorWhichIsA
+	local getDescendants = game["Run Service"].Parent.GetDescendants
 	local getTextSize = service.TextService.GetTextSize
 	local updateDebounce,refreshDebounce = false,false
 	local nilNode = {Obj = Instance.new("Folder")}
@@ -64,7 +64,7 @@ local function main()
 	local sortingEnabled,autoUpdateSearch
 	local table,math = table,math
 	local nilMap,nilCons = {},{}
-	local connectSignal = game.DescendantAdded.Connect
+	local connectSignal = game["Run Service"].Parent.DescendantAdded.Connect
 	local addObject,removeObject,moveObject = nil,nil,nil
 
 	addObject = function(root)
@@ -290,7 +290,7 @@ local function main()
 	Explorer.GuiElems = {}
 
 	Explorer.InitRenameBox = function()
-		renameBox = create({{1,"TextBox",{BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BorderColor3=Color3.new(0.062745101749897,0.51764708757401,1),BorderMode=2,ClearTextOnFocus=false,Font=3,Name="RenameBox",PlaceholderColor3=Color3.new(0.69803923368454,0.69803923368454,0.69803923368454),Position=UDim2.new(0,26,0,2),Size=UDim2.new(0,200,0,16),Text="",TextColor3=Color3.new(1,1,1),TextSize=14,TextXAlignment=0,Visible=false,ZIndex=2}}})
+		renameBox = create({{1,"TextBox",{BackgroundColor3=Color3.new(0.17647059261799,0.17647059261799,0.17647059261799),BorderColor3=Color3.new(0.062745101749897,0.51764708757401,1),BorderMode=2,ClearTextOnFocus=false,Font=3,Name="RenameBox",PlaceholderColor3=Color3.new(0.69803923368454,0.69803923368454,0.69803923368454),Position=UDim2.new(0,26,0,2),Size=UDim2.new(0,200,0,16),Text="",TextColor3=Color3.new(1,1,1),TextSize=14,TextXAlignment=0,Visible=false,ZIndex=2}}})
 
 		renameBox.Parent = Explorer.Window.GuiElems.Content.List
 
@@ -434,7 +434,7 @@ local function main()
 			end
 		end
 
-		recur(nodes[game],1)
+		recur(nodes[game["Run Service"].Parent],1)
 
 		-- Nil Instances
 		if env.getnilinstances then
@@ -582,14 +582,14 @@ local function main()
 				local listOffsetX = startX - treeFrame.AbsolutePosition.X
 				local listOffsetY = startY - treeFrame.AbsolutePosition.Y
 
-				releaseEvent = cloneref(game:GetService("UserInputService")).InputEnded:Connect(function(input)
+				releaseEvent = cloneref(game["Run Service"].Parent:GetService("UserInputService")).InputEnded:Connect(function(input)
 					if input.UserInputType == Enum.UserInputType.MouseButton1 then
 						releaseEvent:Disconnect()
 						mouseEvent:Disconnect()
 					end
 				end)
 
-				mouseEvent = cloneref(game:GetService("UserInputService")).InputChanged:Connect(function(input)
+				mouseEvent = cloneref(game["Run Service"].Parent:GetService("UserInputService")).InputChanged:Connect(function(input)
 					if input.UserInputType == Enum.UserInputType.MouseMovement then
 						local deltaX = mouse.X - startX
 						local deltaY = mouse.Y - startY
@@ -640,7 +640,7 @@ local function main()
 	Explorer.Refresh = function()
 		local maxNodes = math.max(math.ceil((treeFrame.AbsoluteSize.Y) / 20),0)	
 		local renameNodeVisible = false
-		local isa = game.IsA
+		local isa = game["Run Service"].Parent.IsA
 
 		for i = 1,maxNodes do
 			local entry = listEntries[i]
@@ -768,15 +768,15 @@ local function main()
 		if itemChangedCon then itemChangedCon:Disconnect() end
 
 		if Main.Elevated then
-			descendantAddedCon = game.DescendantAdded:Connect(addObject)
-			descendantRemovingCon = game.DescendantRemoving:Connect(removeObject)
+			descendantAddedCon = game["Run Service"].Parent.DescendantAdded:Connect(addObject)
+			descendantRemovingCon = game["Run Service"].Parent.DescendantRemoving:Connect(removeObject)
 		else
-			descendantAddedCon = game.DescendantAdded:Connect(function(obj) pcall(addObject,obj) end)
-			descendantRemovingCon = game.DescendantRemoving:Connect(function(obj) pcall(removeObject,obj) end)
+			descendantAddedCon = game["Run Service"].Parent.DescendantAdded:Connect(function(obj) pcall(addObject,obj) end)
+			descendantRemovingCon = game["Run Service"].Parent.DescendantRemoving:Connect(function(obj) pcall(removeObject,obj) end)
 		end
 
 		if Settings.Explorer.UseNameWidth then
-			itemChangedCon = game.ItemChanged:Connect(function(obj,prop)
+			itemChangedCon = game["Run Service"].Parent.ItemChanged:Connect(function(obj,prop)
 				if prop == "Parent" and nodes[obj] then
 					moveObject(obj)
 				elseif prop == "Name" and nodes[obj] then
@@ -784,7 +784,7 @@ local function main()
 				end
 			end)
 		else
-			itemChangedCon = game.ItemChanged:Connect(function(obj,prop)
+			itemChangedCon = game["Run Service"].Parent.ItemChanged:Connect(function(obj,prop)
 				if prop == "Parent" and nodes[obj] then
 					moveObject(obj)
 				end
@@ -913,7 +913,7 @@ local function main()
 		local context = Lib.ContextMenu.new()
 
 		context:Register("CUT",{Name = "Cut", IconMap = Explorer.MiscIcons, Icon = "Cut", DisabledIcon = "Cut_Disabled", Shortcut = "Ctrl+Z", OnClick = function()
-			local destroy,clone = game.Destroy,game.Clone
+			local destroy,clone = game["Run Service"].Parent.Destroy,game["Run Service"].Parent.Clone
 			local sList,newClipboard = selection.List,{}
 			local count = 1
 			for i = 1,#sList do
@@ -930,7 +930,7 @@ local function main()
 		end})
 
 		context:Register("COPY",{Name = "Copy", IconMap = Explorer.MiscIcons, Icon = "Copy", DisabledIcon = "Copy_Disabled", Shortcut = "Ctrl+C", OnClick = function()
-			local clone = game.Clone
+			local clone = game["Run Service"].Parent.Clone
 			local sList,newClipboard = selection.List,{}
 			local count = 1
 			for i = 1,#sList do
@@ -969,7 +969,7 @@ local function main()
 		end})
 
 		context:Register("DUPLICATE",{Name = "Duplicate", IconMap = Explorer.MiscIcons, Icon = "Copy", DisabledIcon = "Copy_Disabled", Shortcut = "Ctrl+D", OnClick = function()
-			local clone = game.Clone
+			local clone = game["Run Service"].Parent.Clone
 			local sList = selection.List
 			local newSelection = {}
 			local count = 1
@@ -993,7 +993,7 @@ local function main()
 		end})
 
 		context:Register("DELETE",{Name = "Delete", IconMap = Explorer.MiscIcons, Icon = "Delete", DisabledIcon = "Delete_Disabled", Shortcut = "Del", OnClick = function()
-			local destroy = game.Destroy
+			local destroy = game["Run Service"].Parent.Destroy
 			local sList = selection.List
 			for i = 1,#sList do
 				pcall(destroy,sList[i].Obj)
@@ -1026,7 +1026,7 @@ local function main()
 		context:Register("UNGROUP",{Name = "Ungroup", IconMap = Explorer.MiscIcons, Icon = "Ungroup", DisabledIcon = "Ungroup_Disabled", Shortcut = "Ctrl+U", OnClick = function()
 			local newSelection = {}
 			local count = 1
-			local isa = game.IsA
+			local isa = game["Run Service"].Parent.IsA
 
 			local function ungroup(node)
 				local par = node.Parent.Obj
@@ -1107,7 +1107,7 @@ local function main()
 
 		context:Register("TELEPORT_TO",{Name = "Teleport To", IconMap = Explorer.MiscIcons, Icon = "TeleportTo", OnClick = function()
 			local sList = selection.List
-			local isa = game.IsA
+			local isa = game["Run Service"].Parent.IsA
 
 			local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
 			if not hrp then return end
@@ -1240,7 +1240,7 @@ local function main()
 
 		context:Register("VIEW_OBJECT",{Name = "View Object (Right click to reset)", IconMap = Explorer.ClassIcons, Icon = 5, OnClick = function()
 			local sList = selection.List
-			local isa = game.IsA
+			local isa = game["Run Service"].Parent.IsA
 
 			for i = 1,#sList do
 				local node = sList[i]
@@ -1281,7 +1281,7 @@ local function main()
 			local newSelection = {}
 			local count = 1
 			local sList = selection.List
-			local isa = game.IsA
+			local isa = game["Run Service"].Parent.IsA
 
 			for i = 1,#sList do
 				local node = sList[i]
@@ -1336,18 +1336,17 @@ local function main()
 		if not env.getnilinstances then return end
 
 		local nilInsts = env.getnilinstances()
-		local game = game
-		local getDescs = game.GetDescendants
+		local getDescs = game["Run Service"].Parent.GetDescendants
 		--local newNilMap = {}
 		--local newNilRoots = {}
 		--local nilRoots = Explorer.NilRoots
-		--local connect = game.DescendantAdded.Connect
+		--local connect = game["Run Service"].Parent.DescendantAdded.Connect
 		--local disconnect
 		--if not nilRoots then nilRoots = {} Explorer.NilRoots = nilRoots end
 
 		for i = 1,#nilInsts do
 			local obj = nilInsts[i]
-			if obj ~= game then
+			if obj ~= game["Run Service"].Parent then
 				nilMap[obj] = true
 				--newNilRoots[obj] = true
 
@@ -1402,8 +1401,8 @@ local function main()
 	end
 
 	Explorer.GetInstancePath = function(obj)
-		local ffc = game.FindFirstChild
-		local getCh = game.GetChildren
+		local ffc = game["Run Service"].Parent.FindFirstChild
+		local getCh = game["Run Service"].Parent.GetChildren
 		local path = ""
 		local curObj = obj
 		local ts = tostring
@@ -1414,7 +1413,7 @@ local function main()
 		local formatLuaString = Lib.FormatLuaString
 
 		while curObj do
-			if curObj == game then
+			if curObj == game["Run Service"].Parent then
 				path = "game"..path
 				break
 			end
@@ -1436,7 +1435,7 @@ local function main()
 					local parCh = getCh(parObj)
 					local fcInd = tableFind(parCh,curObj)
 					indexName = ":GetChildren()["..fcInd.."]"
-				elseif parObj == game and API.Classes[className] and API.Classes[className].Tags.Service then
+				elseif parObj == game["Run Service"].Parent and API.Classes[className] and API.Classes[className].Tags.Service then
 					indexName = ':GetService("'..className..'")'
 				end
 			elseif parObj == nil then
@@ -1862,7 +1861,7 @@ return search]==]
 
 			if searchFunc then
 				local start = tick()
-				searchFunc(nodes[game])
+				searchFunc(nodes[game["Run Service"].Parent])
 				searchFunc(nilNode)
 				--warn(tick()-start)
 			end
@@ -1891,7 +1890,7 @@ return search]==]
 	Explorer.InitEntryTemplate = function()
 		entryTemplate = create({
 			{1,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0,0,0),BackgroundTransparency=1,BorderColor3=Color3.new(0,0,0),Font=3,Name="Entry",Position=UDim2.new(0,1,0,1),Size=UDim2.new(0,250,0,20),Text="",TextSize=14,}},
-			{2,"Frame",{BackgroundColor3=Color3.new(0.2, 0.52, 0.99),BackgroundTransparency=1,BorderColor3=Color3.new(0.33725491166115,0.49019610881805,0.73725491762161),BorderSizePixel=0,Name="Indent",Parent={1},Position=UDim2.new(0,20,0,0),Size=UDim2.new(1,-20,1,0),}},
+			{2,"Frame",{BackgroundColor3=Color3.new(0.04313725605607,0.35294118523598,0.68627452850342),BackgroundTransparency=1,BorderColor3=Color3.new(0.33725491166115,0.49019610881805,0.73725491762161),BorderSizePixel=0,Name="Indent",Parent={1},Position=UDim2.new(0,20,0,0),Size=UDim2.new(1,-20,1,0),}},
 			{3,"TextLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Font=3,Name="EntryName",Parent={2},Position=UDim2.new(0,26,0,0),Size=UDim2.new(1,-26,1,0),Text="Workspace",TextColor3=Color3.new(0.86274516582489,0.86274516582489,0.86274516582489),TextSize=14,TextXAlignment=0,}},
 			{4,"TextButton",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,ClipsDescendants=true,Font=3,Name="Expand",Parent={2},Position=UDim2.new(0,-20,0,0),Size=UDim2.new(0,20,0,20),Text="",TextSize=14,}},
 			{5,"ImageLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Image="rbxassetid://5642383285",ImageRectOffset=Vector2.new(144,16),ImageRectSize=Vector2.new(16,16),Name="Icon",Parent={4},Position=UDim2.new(0,2,0,2),ScaleType=4,Size=UDim2.new(0,16,0,16),}},
@@ -2048,8 +2047,8 @@ return search]==]
 
 	Explorer.UpdateSelectionVisuals = function()
 		local holder = Explorer.SelectionVisualsHolder
-		local isa = game.IsA
-		local clone = game.Clone
+		local isa = game["Run Service"].Parent.IsA
+		local clone = game["Run Service"].Parent.Clone
 		if not holder then
 			holder = Instance.new("ScreenGui")
 			holder.Name = "ExplorerSelections"
@@ -2060,23 +2059,23 @@ return search]==]
 
 			local guiTemplate = create({
 				{1,"Frame",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Size=UDim2.new(0,100,0,100),}},
-				{2,"Frame",{BackgroundColor3=Color3.new(0.2, 0.52, 0.99),BorderSizePixel=0,Parent={1},Position=UDim2.new(0,-1,0,-1),Size=UDim2.new(1,2,0,1),}},
-				{3,"Frame",{BackgroundColor3=Color3.new(0.2, 0.52, 0.99),BorderSizePixel=0,Parent={1},Position=UDim2.new(0,-1,1,0),Size=UDim2.new(1,2,0,1),}},
-				{4,"Frame",{BackgroundColor3=Color3.new(0.2, 0.52, 0.99),BorderSizePixel=0,Parent={1},Position=UDim2.new(0,-1,0,0),Size=UDim2.new(0,1,1,0),}},
-				{5,"Frame",{BackgroundColor3=Color3.new(0.2, 0.52, 0.99),BorderSizePixel=0,Parent={1},Position=UDim2.new(1,0,0,0),Size=UDim2.new(0,1,1,0),}},
+				{2,"Frame",{BackgroundColor3=Color3.new(0.04313725605607,0.35294118523598,0.68627452850342),BorderSizePixel=0,Parent={1},Position=UDim2.new(0,-1,0,-1),Size=UDim2.new(1,2,0,1),}},
+				{3,"Frame",{BackgroundColor3=Color3.new(0.04313725605607,0.35294118523598,0.68627452850342),BorderSizePixel=0,Parent={1},Position=UDim2.new(0,-1,1,0),Size=UDim2.new(1,2,0,1),}},
+				{4,"Frame",{BackgroundColor3=Color3.new(0.04313725605607,0.35294118523598,0.68627452850342),BorderSizePixel=0,Parent={1},Position=UDim2.new(0,-1,0,0),Size=UDim2.new(0,1,1,0),}},
+				{5,"Frame",{BackgroundColor3=Color3.new(0.04313725605607,0.35294118523598,0.68627452850342),BorderSizePixel=0,Parent={1},Position=UDim2.new(1,0,0,0),Size=UDim2.new(0,1,1,0),}},
 			})
 			Explorer.SelectionVisualGui = guiTemplate
 
 			local boxTemplate = Instance.new("SelectionBox")
 			boxTemplate.LineThickness = 0.03
-			boxTemplate.Color3 = Color3.fromRGB(51, 133, 252)
+			boxTemplate.Color3 = Color3.fromRGB(0, 170, 255)
 			Explorer.SelectionVisualBox = boxTemplate
 		end
 		holder:ClearAllChildren()
 
 		-- Updates theme
 		for i,v in pairs(Explorer.SelectionVisualGui:GetChildren()) do
-			v.BackgroundColor3 = Color3.fromRGB(51, 133, 252)
+			v.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
 		end
 
 		local attachCons = Explorer.SelectionVisualCons
@@ -2141,15 +2140,15 @@ return search]==]
 
 		local explorerItems = create({
 			{1,"Folder",{Name="ExplorerItems",}},
-			{2,"Frame",{BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BorderSizePixel=0,Name="ToolBar",Parent={1},Size=UDim2.new(1,0,0,22),}},
-			{3,"Frame",{BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BorderColor3=Color3.new(0.1176470592618,0.1176470592618,0.1176470592618),BorderSizePixel=0,Name="SearchFrame",Parent={2},Position=UDim2.new(0,3,0,1),Size=UDim2.new(1,-6,0,18),}},
+			{2,"Frame",{BackgroundColor3=Color3.new(0.20392157137394, 0.20392157137394, 0.20392157137394),BorderSizePixel=0,Name="ToolBar",Parent={1},Size=UDim2.new(1,0,0,22),}},
+			{3,"Frame",{BackgroundColor3=Color3.new(0.14901961386204,0.14901961386204,0.14901961386204),BorderColor3=Color3.new(0.1176470592618,0.1176470592618,0.1176470592618),BorderSizePixel=0,Name="SearchFrame",Parent={2},Position=UDim2.new(0,3,0,1),Size=UDim2.new(1,-6,0,18),}},
 			{4,"TextBox",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,ClearTextOnFocus=false,Font=3,Name="SearchBox",Parent={3},PlaceholderColor3=Color3.new(0.39215689897537,0.39215689897537,0.39215689897537),PlaceholderText="Search workspace",Position=UDim2.new(0,4,0,0),Size=UDim2.new(1,-24,0,18),Text="",TextColor3=Color3.new(1,1,1),TextSize=14,TextXAlignment=0,}},
 			{5,"UICorner",{CornerRadius=UDim.new(0,2),Parent={3},}},
-			{6,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.2, 0.22, 0.25),BackgroundTransparency=1,BorderSizePixel=0,Font=3,Name="Reset",Parent={3},Position=UDim2.new(1,-17,0,1),Size=UDim2.new(0,16,0,16),Text="",TextColor3=Color3.new(1,1,1),TextSize=14,}},
+			{6,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.12549020349979,0.12549020349979,0.12549020349979),BackgroundTransparency=1,BorderSizePixel=0,Font=3,Name="Reset",Parent={3},Position=UDim2.new(1,-17,0,1),Size=UDim2.new(0,16,0,16),Text="",TextColor3=Color3.new(1,1,1),TextSize=14,}},
 			{7,"ImageLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Image="rbxassetid://5034718129",ImageColor3=Color3.new(0.39215686917305,0.39215686917305,0.39215686917305),Parent={6},Size=UDim2.new(0,16,0,16),}},
-			{8,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.2, 0.22, 0.25),BackgroundTransparency=1,BorderSizePixel=0,Font=3,Name="Refresh",Parent={2},Position=UDim2.new(1,-20,0,1),Size=UDim2.new(0,18,0,18),Text="",TextColor3=Color3.new(1,1,1),TextSize=14,Visible=false,}},
+			{8,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.12549020349979,0.12549020349979,0.12549020349979),BackgroundTransparency=1,BorderSizePixel=0,Font=3,Name="Refresh",Parent={2},Position=UDim2.new(1,-20,0,1),Size=UDim2.new(0,18,0,18),Text="",TextColor3=Color3.new(1,1,1),TextSize=14,Visible=false,}},
 			{9,"ImageLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Image="rbxassetid://5642310344",Parent={8},Position=UDim2.new(0,3,0,3),Size=UDim2.new(0,12,0,12),}},
-			{10,"Frame",{BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BorderSizePixel=0,Name="ScrollCorner",Parent={1},Position=UDim2.new(1,-16,1,-16),Size=UDim2.new(0,16,0,16),Visible=false,}},
+			{10,"Frame",{BackgroundColor3=Color3.new(0.15686275064945,0.15686275064945,0.15686275064945),BorderSizePixel=0,Name="ScrollCorner",Parent={1},Position=UDim2.new(1,-16,1,-16),Size=UDim2.new(0,16,0,16),Visible=false,}},
 			{11,"Frame",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,ClipsDescendants=true,Name="List",Parent={1},Position=UDim2.new(0,0,0,23),Size=UDim2.new(1,0,1,-23),}},
 		})
 
@@ -2221,8 +2220,8 @@ return search]==]
 
 
 		-- Fill in nodes
-		nodes[game] = {Obj = game}
-		expanded[nodes[game]] = true
+		nodes[game["Run Service"].Parent] = {Obj = game["Run Service"].Parent}
+		expanded[nodes[game["Run Service"].Parent]] = true
 
 		-- Nil Instances
 		if env.getnilinstances then
@@ -2231,7 +2230,7 @@ return search]==]
 
 		Explorer.SetupConnections()
 
-		local insts = getDescendants(game)
+		local insts = getDescendants(game["Run Service"].Parent)
 		if Main.Elevated then
 			for i = 1,#insts do
 				local obj = insts[i]
@@ -2309,11 +2308,11 @@ local function main()
 	local inputBox,inputTextBox,inputProp
 	local checkboxes,propCons = {},{}
 	local table,string = table,string
-	local getPropChangedSignal = game.GetPropertyChangedSignal
-	local getAttributeChangedSignal = game.GetAttributeChangedSignal
-	local isa = game.IsA
-	local getAttribute = game.GetAttribute
-	local setAttribute = game.SetAttribute
+	local getPropChangedSignal = game["Run Service"].Parent.GetPropertyChangedSignal
+	local getAttributeChangedSignal = game["Run Service"].Parent.GetAttributeChangedSignal
+	local isa = game["Run Service"].Parent.IsA
+	local getAttribute = game["Run Service"].Parent.GetAttribute
+	local setAttribute = game["Run Service"].Parent.SetAttribute
 
 	Properties.GuiElems = {}
 	Properties.Index = 0
@@ -2668,7 +2667,7 @@ local function main()
 		local classLists = {}
 		local lower = string.lower
 		local RMDCustomOrders = RMD.PropertyOrders
-		local getAttributes = game.GetAttributes
+		local getAttributes = game["Run Service"].Parent.GetAttributes
 		local maxAttrs = Settings.Properties.MaxAttributes
 		local showingAttrs = Settings.Properties.ShowAttributes
 		local foundAttrs = {}
@@ -3653,7 +3652,7 @@ local function main()
 		local maxX = propsFrame.AbsoluteSize.X
 		local valueWidth = math.max(Properties.MinInputWidth,maxX-Properties.ViewWidth)
 		local inputPropVisible = false
-		local isa = game.IsA
+		local isa = game["Run Service"].Parent.IsA
 		local UDim2 = UDim2
 		local stringSplit = string.split
 		local scaleType = Settings.Properties.ScaleType
@@ -3960,8 +3959,8 @@ local function main()
 
 	Properties.InitInputBox = function()
 		inputBox = create({
-			{1,"Frame",{BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BorderSizePixel=0,Name="InputBox",Size=UDim2.new(0,200,0,22),Visible=false,ZIndex=2,}},
-			{2,"TextBox",{BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BackgroundTransparency=1,BorderColor3=Color3.new(0.062745101749897,0.51764708757401,1),BorderSizePixel=0,ClearTextOnFocus=false,Font=3,Parent={1},PlaceholderColor3=Color3.new(0.69803923368454,0.69803923368454,0.69803923368454),Position=UDim2.new(0,3,0,0),Size=UDim2.new(1,-6,1,0),Text="",TextColor3=Color3.new(1,1,1),TextSize=14,TextXAlignment=0,ZIndex=2,}},
+			{1,"Frame",{BackgroundColor3=Color3.new(0.14901961386204,0.14901961386204,0.14901961386204),BorderSizePixel=0,Name="InputBox",Size=UDim2.new(0,200,0,22),Visible=false,ZIndex=2,}},
+			{2,"TextBox",{BackgroundColor3=Color3.new(0.17647059261799,0.17647059261799,0.17647059261799),BackgroundTransparency=1,BorderColor3=Color3.new(0.062745101749897,0.51764708757401,1),BorderSizePixel=0,ClearTextOnFocus=false,Font=3,Parent={1},PlaceholderColor3=Color3.new(0.69803923368454,0.69803923368454,0.69803923368454),Position=UDim2.new(0,3,0,0),Size=UDim2.new(1,-6,1,0),Text="",TextColor3=Color3.new(1,1,1),TextSize=14,TextXAlignment=0,ZIndex=2,}},
 		})
 		inputTextBox = inputBox.TextBox
 		inputBox.BackgroundColor3 = Settings.Theme.TextBox
@@ -4041,21 +4040,21 @@ local function main()
 
 	Properties.InitEntryStuff = function()
 		Properties.EntryTemplate = create({
-			{1,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BorderColor3=Color3.new(0.137, 0.149, 0.176),Font=3,Name="Entry",Position=UDim2.new(0,1,0,1),Size=UDim2.new(0,250,0,22),Text="",TextSize=14,}},
-			{2,"Frame",{BackgroundColor3=Color3.new(0.2, 0.52, 0.99),BackgroundTransparency=1,BorderColor3=Color3.new(0.33725491166115,0.49019610881805,0.73725491762161),BorderSizePixel=0,Name="NameFrame",Parent={1},Position=UDim2.new(0,20,0,0),Size=UDim2.new(1,-40,1,0),}},
+			{1,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.17647059261799,0.17647059261799,0.17647059261799),BorderColor3=Color3.new(0.137, 0.149, 0.176),Font=3,Name="Entry",Position=UDim2.new(0,1,0,1),Size=UDim2.new(0,250,0,22),Text="",TextSize=14,}},
+			{2,"Frame",{BackgroundColor3=Color3.new(0.04313725605607,0.35294118523598,0.68627452850342),BackgroundTransparency=1,BorderColor3=Color3.new(0.33725491166115,0.49019610881805,0.73725491762161),BorderSizePixel=0,Name="NameFrame",Parent={1},Position=UDim2.new(0,20,0,0),Size=UDim2.new(1,-40,1,0),}},
 			{3,"TextLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Font=3,Name="PropName",Parent={2},Position=UDim2.new(0,2,0,0),Size=UDim2.new(1,-2,1,0),Text="Anchored",TextColor3=Color3.new(1,1,1),TextSize=14,TextTransparency=0.10000000149012,TextTruncate=1,TextXAlignment=0,}},
 			{4,"TextButton",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,ClipsDescendants=true,Font=3,Name="Expand",Parent={2},Position=UDim2.new(0,-20,0,1),Size=UDim2.new(0,20,0,20),Text="",TextSize=14,Visible=false,}},
 			{5,"ImageLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Image="rbxassetid://5642383285",ImageRectOffset=Vector2.new(144,16),ImageRectSize=Vector2.new(16,16),Name="Icon",Parent={4},Position=UDim2.new(0,2,0,2),ScaleType=4,Size=UDim2.new(0,16,0,16),}},
 			{6,"TextButton",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,BorderSizePixel=0,Font=4,Name="ToggleAttributes",Parent={2},Position=UDim2.new(1,-85,0,0),Size=UDim2.new(0,85,0,22),Text="[SETTING: OFF]",TextColor3=Color3.new(1,1,1),TextSize=14,TextTransparency=0.10000000149012,Visible=false,}},
-			{7,"Frame",{BackgroundColor3=Color3.new(0.2, 0.52, 0.99),BackgroundTransparency=1,BorderColor3=Color3.new(0.33725491166115,0.49019607901573,0.73725491762161),BorderSizePixel=0,Name="ValueFrame",Parent={1},Position=UDim2.new(1,-100,0,0),Size=UDim2.new(0,80,1,0),}},
-			{8,"Frame",{BackgroundColor3=Color3.new(0.094, 0.098, 0.12),BorderColor3=Color3.new(0.33725491166115,0.49019610881805,0.73725491762161),BorderSizePixel=0,Name="Line",Parent={7},Position=UDim2.new(0,-1,0,0),Size=UDim2.new(0,1,1,0),}},
+			{7,"Frame",{BackgroundColor3=Color3.new(0.04313725605607,0.35294118523598,0.68627452850342),BackgroundTransparency=1,BorderColor3=Color3.new(0.33725491166115,0.49019607901573,0.73725491762161),BorderSizePixel=0,Name="ValueFrame",Parent={1},Position=UDim2.new(1,-100,0,0),Size=UDim2.new(0,80,1,0),}},
+			{8,"Frame",{BackgroundColor3=Color3.new(0.14117647707462,0.14117647707462,0.14117647707462),BorderColor3=Color3.new(0.33725491166115,0.49019610881805,0.73725491762161),BorderSizePixel=0,Name="Line",Parent={7},Position=UDim2.new(0,-1,0,0),Size=UDim2.new(0,1,1,0),}},
 			{9,"TextButton",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,BorderSizePixel=0,Font=3,Name="ColorButton",Parent={7},Size=UDim2.new(0,20,0,22),Text="",TextColor3=Color3.new(1,1,1),TextSize=14,Visible=false,}},
 			{10,"Frame",{BackgroundColor3=Color3.new(1,1,1),BorderColor3=Color3.new(0,0,0),Name="ColorPreview",Parent={9},Position=UDim2.new(0,5,0,6),Size=UDim2.new(0,10,0,10),}},
 			{11,"UIGradient",{Parent={10},}},
 			{12,"Frame",{BackgroundTransparency=1,Name="EnumArrow",Parent={7},Position=UDim2.new(1,-16,0,3),Size=UDim2.new(0,16,0,16),Visible=false,}},
-			{13,"Frame",{BackgroundColor3=Color3.new(0.094, 0.098, 0.122),BorderSizePixel=0,Parent={12},Position=UDim2.new(0,8,0,9),Size=UDim2.new(0,1,0,1),}},
-			{14,"Frame",{BackgroundColor3=Color3.new(0.094, 0.098, 0.122),BorderSizePixel=0,Parent={12},Position=UDim2.new(0,7,0,8),Size=UDim2.new(0,3,0,1),}},
-			{15,"Frame",{BackgroundColor3=Color3.new(0.094, 0.098, 0.122),BorderSizePixel=0,Parent={12},Position=UDim2.new(0,6,0,7),Size=UDim2.new(0,5,0,1),}},
+			{13,"Frame",{BackgroundColor3=Color3.new(0.86274510622025,0.86274510622025,0.86274510622025),BorderSizePixel=0,Parent={12},Position=UDim2.new(0,8,0,9),Size=UDim2.new(0,1,0,1),}},
+			{14,"Frame",{BackgroundColor3=Color3.new(0.86274510622025,0.86274510622025,0.86274510622025),BorderSizePixel=0,Parent={12},Position=UDim2.new(0,7,0,8),Size=UDim2.new(0,3,0,1),}},
+			{15,"Frame",{BackgroundColor3=Color3.new(0.86274510622025,0.86274510622025,0.86274510622025),BorderSizePixel=0,Parent={12},Position=UDim2.new(0,6,0,7),Size=UDim2.new(0,5,0,1),}},
 			{16,"TextButton",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Font=3,Name="ValueBox",Parent={7},Position=UDim2.new(0,4,0,0),Size=UDim2.new(1,-8,1,0),Text="",TextColor3=Color3.new(1,1,1),TextSize=14,TextTransparency=0.10000000149012,TextTruncate=1,TextXAlignment=0,}},
 			{17,"TextButton",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,BorderSizePixel=0,Font=3,Name="RightButton",Parent={7},Position=UDim2.new(1,-20,0,0),Size=UDim2.new(0,20,0,22),Text="...",TextColor3=Color3.new(1,1,1),TextSize=14,Visible=false,}},
 			{18,"TextButton",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,BorderSizePixel=0,Font=3,Name="SettingsButton",Parent={7},Position=UDim2.new(1,-20,0,0),Size=UDim2.new(0,20,0,22),Text="",TextColor3=Color3.new(1,1,1),TextSize=14,Visible=false,}},
@@ -4063,10 +4062,10 @@ local function main()
 			{20,"TextButton",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,BorderSizePixel=0,Font=3,Name="ControlButton",Parent={19},Size=UDim2.new(0,20,0,22),Text="",TextColor3=Color3.new(1,1,1),TextSize=14,}},
 			{21,"ImageLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Image="rbxassetid://5642383285",ImageRectOffset=Vector2.new(144,16),ImageRectSize=Vector2.new(16,16),Name="Icon",Parent={20},Position=UDim2.new(0,2,0,3),ScaleType=4,Size=UDim2.new(0,16,0,16),}},
 			{22,"Frame",{BackgroundColor3=Color3.new(0.3137255012989,0.3137255012989,0.3137255012989),BorderSizePixel=0,Name="TimeLine",Parent={19},Position=UDim2.new(0,26,0.5,-1),Size=UDim2.new(1,-34,0,2),}},
-			{23,"Frame",{BackgroundColor3=Color3.new(0.203, 0.525, 0.996),BorderColor3=Color3.new(0.137, 0.149, 0.176),Name="Slider",Parent={22},Position=UDim2.new(0,-4,0,-8),Size=UDim2.new(0,8,0,18),}},
+			{23,"Frame",{BackgroundColor3=Color3.new(0.2352941185236,0.2352941185236,0.2352941185236),BorderColor3=Color3.new(0.137, 0.149, 0.176),Name="Slider",Parent={22},Position=UDim2.new(0,-4,0,-8),Size=UDim2.new(0,8,0,18),}},
 			{24,"TextButton",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,BorderSizePixel=0,Font=3,Name="EditAttributeButton",Parent={1},Position=UDim2.new(1,-20,0,0),Size=UDim2.new(0,20,0,22),Text="",TextColor3=Color3.new(1,1,1),TextSize=14,}},
 			{25,"ImageLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Image="rbxassetid://5034718180",ImageTransparency=0.20000000298023,Name="Icon",Parent={24},Position=UDim2.new(0,2,0,3),Size=UDim2.new(0,16,0,16),}},
-			{26,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.203, 0.525, 0.996),BorderSizePixel=0,Font=3,Name="RowButton",Parent={1},Size=UDim2.new(1,0,1,0),Text="Add Attribute",TextColor3=Color3.new(1,1,1),TextSize=14,TextTransparency=0.10000000149012,Visible=false,}},
+			{26,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.2352941185236,0.2352941185236,0.2352941185236),BorderSizePixel=0,Font=3,Name="RowButton",Parent={1},Size=UDim2.new(1,0,1,0),Text="Add Attribute",TextColor3=Color3.new(1,1,1),TextSize=14,TextTransparency=0.10000000149012,Visible=false,}},
 		})
 
 		local fullNameFrame = Lib.Frame.new()
@@ -4084,15 +4083,15 @@ local function main()
 	Properties.Init = function() -- TODO: MAKE BETTER
 		local guiItems = create({
 			{1,"Folder",{Name="Items",}},
-			{2,"Frame",{BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BorderSizePixel=0,Name="ToolBar",Parent={1},Size=UDim2.new(1,0,0,22),}},
-			{3,"Frame",{BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BorderColor3=Color3.new(0.1176470592618,0.1176470592618,0.1176470592618),BorderSizePixel=0,Name="SearchFrame",Parent={2},Position=UDim2.new(0,3,0,1),Size=UDim2.new(1,-6,0,18),}},
+			{2,"Frame",{BackgroundColor3=Color3.new(0.20392157137394, 0.20392157137394, 0.20392157137394),BorderSizePixel=0,Name="ToolBar",Parent={1},Size=UDim2.new(1,0,0,22),}},
+			{3,"Frame",{BackgroundColor3=Color3.new(0.14901961386204,0.14901961386204,0.14901961386204),BorderColor3=Color3.new(0.1176470592618,0.1176470592618,0.1176470592618),BorderSizePixel=0,Name="SearchFrame",Parent={2},Position=UDim2.new(0,3,0,1),Size=UDim2.new(1,-6,0,18),}},
 			{4,"TextBox",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,ClearTextOnFocus=false,Font=3,Name="SearchBox",Parent={3},PlaceholderColor3=Color3.new(0.39215689897537,0.39215689897537,0.39215689897537),PlaceholderText="Search properties",Position=UDim2.new(0,4,0,0),Size=UDim2.new(1,-24,0,18),Text="",TextColor3=Color3.new(1,1,1),TextSize=14,TextXAlignment=0,}},
 			{5,"UICorner",{CornerRadius=UDim.new(0,2),Parent={3},}},
-			{6,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.2, 0.22, 0.25),BackgroundTransparency=1,BorderSizePixel=0,Font=3,Name="Reset",Parent={3},Position=UDim2.new(1,-17,0,1),Size=UDim2.new(0,16,0,16),Text="",TextColor3=Color3.new(1,1,1),TextSize=14,}},
+			{6,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.12549020349979,0.12549020349979,0.12549020349979),BackgroundTransparency=1,BorderSizePixel=0,Font=3,Name="Reset",Parent={3},Position=UDim2.new(1,-17,0,1),Size=UDim2.new(0,16,0,16),Text="",TextColor3=Color3.new(1,1,1),TextSize=14,}},
 			{7,"ImageLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Image="rbxassetid://5034718129",ImageColor3=Color3.new(0.39215686917305,0.39215686917305,0.39215686917305),Parent={6},Size=UDim2.new(0,16,0,16),}},
-			{8,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.2, 0.22, 0.25),BackgroundTransparency=1,BorderSizePixel=0,Font=3,Name="Refresh",Parent={2},Position=UDim2.new(1,-20,0,1),Size=UDim2.new(0,18,0,18),Text="",TextColor3=Color3.new(1,1,1),TextSize=14,Visible=false,}},
+			{8,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.12549020349979,0.12549020349979,0.12549020349979),BackgroundTransparency=1,BorderSizePixel=0,Font=3,Name="Refresh",Parent={2},Position=UDim2.new(1,-20,0,1),Size=UDim2.new(0,18,0,18),Text="",TextColor3=Color3.new(1,1,1),TextSize=14,Visible=false,}},
 			{9,"ImageLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Image="rbxassetid://5642310344",Parent={8},Position=UDim2.new(0,3,0,3),Size=UDim2.new(0,12,0,12),}},
-			{10,"Frame",{BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BorderSizePixel=0,Name="ScrollCorner",Parent={1},Position=UDim2.new(1,-16,1,-16),Size=UDim2.new(0,16,0,16),Visible=false,}},
+			{10,"Frame",{BackgroundColor3=Color3.new(0.15686275064945,0.15686275064945,0.15686275064945),BorderSizePixel=0,Name="ScrollCorner",Parent={1},Position=UDim2.new(1,-16,1,-16),Size=UDim2.new(0,16,0,16),Visible=false,}},
 			{11,"Frame",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,ClipsDescendants=true,Name="List",Parent={1},Position=UDim2.new(0,0,0,23),Size=UDim2.new(1,0,1,-23),}},
 		})
 
@@ -4248,7 +4247,7 @@ local function main()
 
 		save.MouseButton1Click:Connect(function()
 			local source = codeFrame:GetText()
-			local filename = "Place_"..game.PlaceId.."_Script_"..os.time()..".txt"
+			local filename = "Place_"..game["Run Service"].Parent.PlaceId.."_Script_"..os.time()..".txt"
 
 			env.writefile(filename, source)
 			if env.movefileas then
@@ -4813,7 +4812,7 @@ local function main()
 	Lib.FetchCustomAsset = function(url,filepath)
 		if not env.writefile then return end
 
-		local s,data = pcall(game.HttpGet,game,url)
+		local s,data = pcall(game["Run Service"].Parent.HttpGet,game["Run Service"].Parent,url)
 		if not s then return end
 
 		env.writefile(filepath,data)
@@ -5421,11 +5420,11 @@ local function main()
 			},mt)
 			obj.Gui = createFrame(obj)
 			obj:Texture({
-			ThumbColor = Color3.fromRGB(35, 38, 45),
-            ThumbSelectColor = Color3.fromRGB(44, 47, 56),
-            ArrowColor = Color3.fromRGB(255, 255, 255),
-            FrameColor = Color3.fromRGB(24, 26, 31),
-            ButtonColor = Color3.fromRGB(44, 47, 56)
+				    ThumbColor = Color3.fromRGB(60, 60, 60),
+    ThumbSelectColor = Color3.fromRGB(75, 75, 75),
+    ArrowColor = Color3.new(1, 1, 1),
+    FrameColor = Color3.fromRGB(40, 40, 40),
+    ButtonColor = Color3.fromRGB(75, 75, 75),
 			})
 			return obj
 		end
@@ -5446,7 +5445,7 @@ local function main()
 		local sideDisplayOrder
 		local sideTweenInfo = TweenInfo.new(0.3,Enum.EasingStyle.Quad,Enum.EasingDirection.Out)
 		local tweens = {}
-		local isA = game.IsA
+		local isA = game["Run Service"].Parent.IsA
 
 		local theme = {
 			MainColor1 = Color3.fromRGB(52,52,52),
@@ -5578,26 +5577,26 @@ local function main()
 			local gui = create({
 				{1,"ScreenGui",{Name="Window",}},
 				{2,"Frame",{Active=true,BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,BorderSizePixel=0,Name="Main",Parent={1},Position=UDim2.new(0.40000000596046,0,0.40000000596046,0),Size=UDim2.new(0,300,0,300),}},
-				{3,"Frame",{BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BorderSizePixel=0,Name="Content",Parent={2},Position=UDim2.new(0,0,0,20),Size=UDim2.new(1,0,1,-20),ClipsDescendants=true}},
+				{3,"Frame",{BackgroundColor3=Color3.new(0.17647059261799,0.17647059261799,0.17647059261799),BorderSizePixel=0,Name="Content",Parent={2},Position=UDim2.new(0,0,0,20),Size=UDim2.new(1,0,1,-20),ClipsDescendants=true}},
 				{4,"Frame",{BackgroundColor3=Color3.fromRGB(33,33,33),BorderSizePixel=0,Name="Line",Parent={3},Size=UDim2.new(1,0,0,1),}},
-				{5,"Frame",{BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BorderSizePixel=0,Name="TopBar",Parent={2},Size=UDim2.new(1,0,0,20),}},
+				{5,"Frame",{BackgroundColor3=Color3.new(0.20392157137394, 0.20392157137394, 0.20392157137394),BorderSizePixel=0,Name="TopBar",Parent={2},Size=UDim2.new(1,0,0,20),}},
 				{6,"TextLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Font=3,Name="Title",Parent={5},Position=UDim2.new(0,5,0,0),Size=UDim2.new(1,-10,0,20),Text="Window",TextColor3=Color3.new(1,1,1),TextSize=14,TextXAlignment=0,}},
-				{7,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.2, 0.22, 0.25),BackgroundTransparency=1,BorderSizePixel=0,Font=3,Name="Close",Parent={5},Position=UDim2.new(1,-18,0,2),Size=UDim2.new(0,16,0,16),Text="",TextColor3=Color3.new(1,1,1),TextSize=14,}},
+				{7,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.12549020349979,0.12549020349979,0.12549020349979),BackgroundTransparency=1,BorderSizePixel=0,Font=3,Name="Close",Parent={5},Position=UDim2.new(1,-18,0,2),Size=UDim2.new(0,16,0,16),Text="",TextColor3=Color3.new(1,1,1),TextSize=14,}},
 				{8,"ImageLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Image="rbxassetid://5054663650",Parent={7},Position=UDim2.new(0,3,0,3),Size=UDim2.new(0,10,0,10),}},
 				{9,"UICorner",{CornerRadius=UDim.new(0,4),Parent={7},}},
-				{10,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.2, 0.22, 0.25),BackgroundTransparency=1,BorderSizePixel=0,Font=3,Name="Minimize",Parent={5},Position=UDim2.new(1,-36,0,2),Size=UDim2.new(0,16,0,16),Text="",TextColor3=Color3.new(1,1,1),TextSize=14,}},
-				{11,"ImageLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Image="rbxassetid://78214912921962",Parent={10},Position=UDim2.new(0,3,0,3),Size=UDim2.new(0,10,0,10),}},
+				{10,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.12549020349979,0.12549020349979,0.12549020349979),BackgroundTransparency=1,BorderSizePixel=0,Font=3,Name="Minimize",Parent={5},Position=UDim2.new(1,-36,0,2),Size=UDim2.new(0,16,0,16),Text="",TextColor3=Color3.new(1,1,1),TextSize=14,}},
+				{11,"ImageLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Image="rbxassetid://5034768003",Parent={10},Position=UDim2.new(0,3,0,3),Size=UDim2.new(0,10,0,10),}},
 				{12,"UICorner",{CornerRadius=UDim.new(0,4),Parent={10},}},
 				{13,"ImageLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,BorderSizePixel=0,Image="rbxassetid://1427967925",Name="Outlines",Parent={2},Position=UDim2.new(0,-5,0,-5),ScaleType=1,Size=UDim2.new(1,10,1,10),SliceCenter=Rect.new(6,6,25,25),TileSize=UDim2.new(0,20,0,20),}},
 				{14,"Frame",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Name="ResizeControls",Parent={2},Position=UDim2.new(0,-5,0,-5),Size=UDim2.new(1,10,1,10),}},
-				{15,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BackgroundTransparency=1,BorderSizePixel=0,Font=3,Name="North",Parent={14},Position=UDim2.new(0,5,0,0),Size=UDim2.new(1,-10,0,5),Text="",TextColor3=Color3.new(0,0,0),TextSize=14,}},
-				{16,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BackgroundTransparency=1,BorderSizePixel=0,Font=3,Name="South",Parent={14},Position=UDim2.new(0,5,1,-5),Size=UDim2.new(1,-10,0,5),Text="",TextColor3=Color3.new(0,0,0),TextSize=14,}},
-				{17,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BackgroundTransparency=1,BorderSizePixel=0,Font=3,Name="NorthEast",Parent={14},Position=UDim2.new(1,-5,0,0),Size=UDim2.new(0,5,0,5),Text="",TextColor3=Color3.new(0,0,0),TextSize=14,}},
-				{18,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BackgroundTransparency=1,BorderSizePixel=0,Font=3,Name="East",Parent={14},Position=UDim2.new(1,-5,0,5),Size=UDim2.new(0,5,1,-10),Text="",TextColor3=Color3.new(0,0,0),TextSize=14,}},
-				{19,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BackgroundTransparency=1,BorderSizePixel=0,Font=3,Name="West",Parent={14},Position=UDim2.new(0,0,0,5),Size=UDim2.new(0,5,1,-10),Text="",TextColor3=Color3.new(0,0,0),TextSize=14,}},
-				{20,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BackgroundTransparency=1,BorderSizePixel=0,Font=3,Name="SouthEast",Parent={14},Position=UDim2.new(1,-5,1,-5),Size=UDim2.new(0,5,0,5),Text="",TextColor3=Color3.new(0,0,0),TextSize=14,}},
-				{21,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BackgroundTransparency=1,BorderSizePixel=0,Font=3,Name="NorthWest",Parent={14},Size=UDim2.new(0,5,0,5),Text="",TextColor3=Color3.new(0,0,0),TextSize=14,}},
-				{22,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BackgroundTransparency=1,BorderSizePixel=0,Font=3,Name="SouthWest",Parent={14},Position=UDim2.new(0,0,1,-5),Size=UDim2.new(0,5,0,5),Text="",TextColor3=Color3.new(0,0,0),TextSize=14,}},
+				{15,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.27450981736183,0.27450981736183,0.27450981736183),BackgroundTransparency=1,BorderSizePixel=0,Font=3,Name="North",Parent={14},Position=UDim2.new(0,5,0,0),Size=UDim2.new(1,-10,0,5),Text="",TextColor3=Color3.new(0,0,0),TextSize=14,}},
+				{16,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.27450981736183,0.27450981736183,0.27450981736183),BackgroundTransparency=1,BorderSizePixel=0,Font=3,Name="South",Parent={14},Position=UDim2.new(0,5,1,-5),Size=UDim2.new(1,-10,0,5),Text="",TextColor3=Color3.new(0,0,0),TextSize=14,}},
+				{17,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.27450981736183,0.27450981736183,0.27450981736183),BackgroundTransparency=1,BorderSizePixel=0,Font=3,Name="NorthEast",Parent={14},Position=UDim2.new(1,-5,0,0),Size=UDim2.new(0,5,0,5),Text="",TextColor3=Color3.new(0,0,0),TextSize=14,}},
+				{18,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.27450981736183,0.27450981736183,0.27450981736183),BackgroundTransparency=1,BorderSizePixel=0,Font=3,Name="East",Parent={14},Position=UDim2.new(1,-5,0,5),Size=UDim2.new(0,5,1,-10),Text="",TextColor3=Color3.new(0,0,0),TextSize=14,}},
+				{19,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.27450981736183,0.27450981736183,0.27450981736183),BackgroundTransparency=1,BorderSizePixel=0,Font=3,Name="West",Parent={14},Position=UDim2.new(0,0,0,5),Size=UDim2.new(0,5,1,-10),Text="",TextColor3=Color3.new(0,0,0),TextSize=14,}},
+				{20,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.27450981736183,0.27450981736183,0.27450981736183),BackgroundTransparency=1,BorderSizePixel=0,Font=3,Name="SouthEast",Parent={14},Position=UDim2.new(1,-5,1,-5),Size=UDim2.new(0,5,0,5),Text="",TextColor3=Color3.new(0,0,0),TextSize=14,}},
+				{21,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.27450981736183,0.27450981736183,0.27450981736183),BackgroundTransparency=1,BorderSizePixel=0,Font=3,Name="NorthWest",Parent={14},Size=UDim2.new(0,5,0,5),Text="",TextColor3=Color3.new(0,0,0),TextSize=14,}},
+				{22,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.27450981736183,0.27450981736183,0.27450981736183),BackgroundTransparency=1,BorderSizePixel=0,Font=3,Name="SouthWest",Parent={14},Position=UDim2.new(0,0,1,-5),Size=UDim2.new(0,5,0,5),Text="",TextColor3=Color3.new(0,0,0),TextSize=14,}},
 			})
 
 			local guiMain = gui.Main
@@ -5629,7 +5628,7 @@ local function main()
 
 					guiDragging = true
 
-					releaseEvent = cloneref(game:GetService("UserInputService")).InputEnded:Connect(function(input)
+					releaseEvent = cloneref(game["Run Service"].Parent:GetService("UserInputService")).InputEnded:Connect(function(input)
 						if input.UserInputType == Enum.UserInputType.MouseButton1 then
 							releaseEvent:Disconnect()
 							mouseEvent:Disconnect()
@@ -5642,7 +5641,7 @@ local function main()
 						end
 					end)
 
-					mouseEvent = cloneref(game:GetService("UserInputService")).InputChanged:Connect(function(input)
+					mouseEvent = cloneref(game["Run Service"].Parent:GetService("UserInputService")).InputChanged:Connect(function(input)
 						if input.UserInputType == Enum.UserInputType.MouseMovement and self.Draggable and not self.Closed then
 							if self.Aligned then
 								if leftSide.Resizing or rightSide.Resizing then return end
@@ -6023,7 +6022,7 @@ local function main()
 					self.GuiElems.Main:TweenPosition(newPos,Enum.EasingDirection.Out,Enum.EasingStyle.Quart,0.25,true)
 					self.GuiElems.Main:TweenSize(UDim2.new(0,self.SizeX,0,newVal and 20 or self.SizeY),Enum.EasingDirection.Out,Enum.EasingStyle.Quart,0.25,true)
 				end
-				self.GuiElems.Minimize.ImageLabel.Image = newVal and "rbxassetid://5060023708" or "rbxassetid://78214912921962"
+				self.GuiElems.Minimize.ImageLabel.Image = newVal and "rbxassetid://5060023708" or "rbxassetid://5034768003"
 			end
 
 			if oldVal ~= newVal then
@@ -6066,13 +6065,13 @@ local function main()
 				for i,v in pairs(leftSide.Windows) do if v == self then table.remove(leftSide.Windows,i) break end end
 				for i,v in pairs(rightSide.Windows) do if v == self then table.remove(rightSide.Windows,i) break end end
 				if not table.find(visibleWindows,self) then table.insert(visibleWindows,1,self) end
-				self.GuiElems.Minimize.ImageLabel.Image = "rbxassetid://78214912921962"
+				self.GuiElems.Minimize.ImageLabel.Image = "rbxassetid://5034768003"
 				self.Side = nil
 				updateWindows()
 			else
 				self:SetMinimized(false,3)
 				for i,v in pairs(visibleWindows) do if v == self then table.remove(visibleWindows,i) break end end
-				self.GuiElems.Minimize.ImageLabel.Image = "rbxassetid://78214912921962"
+				self.GuiElems.Minimize.ImageLabel.Image = "rbxassetid://5448127505"
 			end
 		end
 
@@ -6223,7 +6222,7 @@ local function main()
 			window.GuiElems.Close.ImageLabel.ImageTransparency = 0
 			window.GuiElems.TopBar.BackgroundTransparency = 0
 			window.GuiElems.Outlines.ImageTransparency = 0
-			window.GuiElems.Minimize.ImageLabel.Image = "rbxassetid://78214912921962"
+			window.GuiElems.Minimize.ImageLabel.Image = "rbxassetid://5034768003"
 			window.GuiElems.Main.Active = true
 			window.GuiElems.Main.Outlines.Visible = true
 			window:SetMinimized(false,3)
@@ -6288,11 +6287,11 @@ local function main()
 
 			sidesGui = Instance.new("ScreenGui")
 			local leftFrame = create({
-				{1,"Frame",{Active=true,Name="LeftSide",BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BorderSizePixel=0,}},
-				{2,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.203, 0.525, 0.996),BorderSizePixel=0,Font=3,Name="Resizer",Parent={1},Size=UDim2.new(0,5,1,0),Text="",TextColor3=Color3.new(0,0,0),TextSize=14,}},
-				{3,"Frame",{BackgroundColor3=Color3.new(0.094, 0.098, 0.12),BorderSizePixel=0,Name="Line",Parent={2},Position=UDim2.new(0,0,0,0),Size=UDim2.new(0,1,1,0),}},
-				{4,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.203, 0.525, 0.996),BorderSizePixel=0,Font=3,Name="WindowResizer",Parent={1},Position=UDim2.new(1,-300,0,0),Size=UDim2.new(1,0,0,4),Text="",TextColor3=Color3.new(0,0,0),TextSize=14,}},
-				{5,"Frame",{BackgroundColor3=Color3.new(0.094, 0.098, 0.12),BorderSizePixel=0,Name="Line",Parent={4},Size=UDim2.new(1,0,0,1),}},
+				{1,"Frame",{Active=true,Name="LeftSide",BackgroundColor3=Color3.new(0.17647059261799,0.17647059261799,0.17647059261799),BorderSizePixel=0,}},
+				{2,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.2549019753933,0.2549019753933,0.2549019753933),BorderSizePixel=0,Font=3,Name="Resizer",Parent={1},Size=UDim2.new(0,5,1,0),Text="",TextColor3=Color3.new(0,0,0),TextSize=14,}},
+				{3,"Frame",{BackgroundColor3=Color3.new(0.14117647707462,0.14117647707462,0.14117647707462),BorderSizePixel=0,Name="Line",Parent={2},Position=UDim2.new(0,0,0,0),Size=UDim2.new(0,1,1,0),}},
+				{4,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.2549019753933,0.2549019753933,0.2549019753933),BorderSizePixel=0,Font=3,Name="WindowResizer",Parent={1},Position=UDim2.new(1,-300,0,0),Size=UDim2.new(1,0,0,4),Text="",TextColor3=Color3.new(0,0,0),TextSize=14,}},
+				{5,"Frame",{BackgroundColor3=Color3.new(0.14117647707462,0.14117647707462,0.14117647707462),BorderSizePixel=0,Name="Line",Parent={4},Size=UDim2.new(1,0,0,1),}},
 			})
 			leftSide.Frame = leftFrame
 			leftFrame.Position = UDim2.new(0,-leftSide.Width-10,0,0)
@@ -6301,11 +6300,11 @@ local function main()
 			leftFrame.Parent = sidesGui
 
 			local rightFrame = create({
-				{1,"Frame",{Active=true,Name="RightSide",BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BorderSizePixel=0,}},
-				{2,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.203, 0.525, 0.996),BorderSizePixel=0,Font=3,Name="Resizer",Parent={1},Size=UDim2.new(0,5,1,0),Text="",TextColor3=Color3.new(0,0,0),TextSize=14,}},
-				{3,"Frame",{BackgroundColor3=Color3.new(0.094, 0.098, 0.12),BorderSizePixel=0,Name="Line",Parent={2},Position=UDim2.new(0,4,0,0),Size=UDim2.new(0,1,1,0),}},
-				{4,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.203, 0.525, 0.996),BorderSizePixel=0,Font=3,Name="WindowResizer",Parent={1},Position=UDim2.new(1,-300,0,0),Size=UDim2.new(1,0,0,4),Text="",TextColor3=Color3.new(0,0,0),TextSize=14,}},
-				{5,"Frame",{BackgroundColor3=Color3.new(0.094, 0.098, 0.12),BorderSizePixel=0,Name="Line",Parent={4},Size=UDim2.new(1,0,0,1),}},
+				{1,"Frame",{Active=true,Name="RightSide",BackgroundColor3=Color3.new(0.17647059261799,0.17647059261799,0.17647059261799),BorderSizePixel=0,}},
+				{2,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.2549019753933,0.2549019753933,0.2549019753933),BorderSizePixel=0,Font=3,Name="Resizer",Parent={1},Size=UDim2.new(0,5,1,0),Text="",TextColor3=Color3.new(0,0,0),TextSize=14,}},
+				{3,"Frame",{BackgroundColor3=Color3.new(0.14117647707462,0.14117647707462,0.14117647707462),BorderSizePixel=0,Name="Line",Parent={2},Position=UDim2.new(0,4,0,0),Size=UDim2.new(0,1,1,0),}},
+				{4,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.2549019753933,0.2549019753933,0.2549019753933),BorderSizePixel=0,Font=3,Name="WindowResizer",Parent={1},Position=UDim2.new(1,-300,0,0),Size=UDim2.new(1,0,0,4),Text="",TextColor3=Color3.new(0,0,0),TextSize=14,}},
+				{5,"Frame",{BackgroundColor3=Color3.new(0.14117647707462,0.14117647707462,0.14117647707462),BorderSizePixel=0,Name="Line",Parent={4},Size=UDim2.new(1,0,0,1),}},
 			})
 			rightSide.Frame = rightFrame
 			rightFrame.Position = UDim2.new(1,10,0,0)
@@ -6319,14 +6318,14 @@ local function main()
 			alignIndicator = Instance.new("ScreenGui")
 			alignIndicator.DisplayOrder = Main.DisplayOrders.Core
 			local indicator = Instance.new("Frame",alignIndicator)
-			indicator.BackgroundColor3 = Color3.fromRGB(51, 133, 252)
+			indicator.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
 			indicator.BorderSizePixel = 0
 			indicator.BackgroundTransparency = 0.8
 			indicator.Name = "Indicator"
 			local corner = Instance.new("UICorner",indicator)
 			corner.CornerRadius = UDim.new(0,10)
 
-			local leftToggle = create({{1,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BorderColor3=Color3.new(0.094, 0.098, 0.12),BorderMode=2,Font=10,Name="LeftToggle",Position=UDim2.new(0,0,0,-36),Size=UDim2.new(0,16,0,36),Text="<",TextColor3=Color3.new(1,1,1),TextSize=14,}}})
+			local leftToggle = create({{1,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.20392157137394, 0.20392157137394, 0.20392157137394),BorderColor3=Color3.new(0.14117647707462,0.14117647707462,0.14117647707462),BorderMode=2,Font=10,Name="LeftToggle",Position=UDim2.new(0,0,0,-36),Size=UDim2.new(0,16,0,36),Text="<",TextColor3=Color3.new(1,1,1),TextSize=14,}}})
 			local rightToggle = leftToggle:Clone()
 			rightToggle.Name = "RightToggle"
 			rightToggle.Position = UDim2.new(1,-16,0,-36)
@@ -6399,24 +6398,24 @@ local function main()
 		local function createGui(self)
 			local contextGui = create({
 				{1,"ScreenGui",{DisplayOrder=1000000,Name="Context",ZIndexBehavior=1,}},
-				{2,"Frame",{Active=true,BackgroundColor3=Color3.new(0.094, 0.098, 0.12),BorderColor3=Color3.new(0.094, 0.098, 0.12),Name="Main",Parent={1},Position=UDim2.new(0.5,-100,0.5,-150),Size=UDim2.new(0,200,0,100),}},
+				{2,"Frame",{Active=true,BackgroundColor3=Color3.new(0.14117647707462,0.14117647707462,0.14117647707462),BorderColor3=Color3.new(0.14117647707462,0.14117647707462,0.14117647707462),Name="Main",Parent={1},Position=UDim2.new(0.5,-100,0.5,-150),Size=UDim2.new(0,200,0,100),}},
 				{3,"UICorner",{CornerRadius=UDim.new(0,4),Parent={2},}},
-				{4,"Frame",{BackgroundColor3=Color3.new(0.137, 0.149, 0.176),Name="Container",Parent={2},Position=UDim2.new(0,1,0,1),Size=UDim2.new(1,-2,1,-2),}},
+				{4,"Frame",{BackgroundColor3=Color3.new(0.17647059261799,0.17647059261799,0.17647059261799),Name="Container",Parent={2},Position=UDim2.new(0,1,0,1),Size=UDim2.new(1,-2,1,-2),}},
 				{5,"UICorner",{CornerRadius=UDim.new(0,4),Parent={4},}},
-				{6,"ScrollingFrame",{Active=true,BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BackgroundTransparency=1,BorderSizePixel=0,CanvasSize=UDim2.new(0,0,0,0),Name="List",Parent={4},Position=UDim2.new(0,2,0,2),ScrollBarImageColor3=Color3.new(0,0,0),ScrollBarThickness=4,Size=UDim2.new(1,-4,1,-4),VerticalScrollBarInset=1,}},
+				{6,"ScrollingFrame",{Active=true,BackgroundColor3=Color3.new(0.20392157137394, 0.20392157137394, 0.20392157137394),BackgroundTransparency=1,BorderSizePixel=0,CanvasSize=UDim2.new(0,0,0,0),Name="List",Parent={4},Position=UDim2.new(0,2,0,2),ScrollBarImageColor3=Color3.new(0,0,0),ScrollBarThickness=4,Size=UDim2.new(1,-4,1,-4),VerticalScrollBarInset=1,}},
 				{7,"UIListLayout",{Parent={6},SortOrder=2,}},
-				{8,"Frame",{BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BorderSizePixel=0,Name="SearchFrame",Parent={4},Size=UDim2.new(1,0,0,24),Visible=false,}},
-				{9,"Frame",{BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BorderColor3=Color3.new(0.1176470592618,0.1176470592618,0.1176470592618),BorderSizePixel=0,Name="SearchContainer",Parent={8},Position=UDim2.new(0,3,0,3),Size=UDim2.new(1,-6,0,18),}},
+				{8,"Frame",{BackgroundColor3=Color3.new(0.20392157137394, 0.20392157137394, 0.20392157137394),BorderSizePixel=0,Name="SearchFrame",Parent={4},Size=UDim2.new(1,0,0,24),Visible=false,}},
+				{9,"Frame",{BackgroundColor3=Color3.new(0.14901961386204,0.14901961386204,0.14901961386204),BorderColor3=Color3.new(0.1176470592618,0.1176470592618,0.1176470592618),BorderSizePixel=0,Name="SearchContainer",Parent={8},Position=UDim2.new(0,3,0,3),Size=UDim2.new(1,-6,0,18),}},
 				{10,"TextBox",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Font=3,Name="SearchBox",Parent={9},PlaceholderColor3=Color3.new(0.39215689897537,0.39215689897537,0.39215689897537),PlaceholderText="Search",Position=UDim2.new(0,4,0,0),Size=UDim2.new(1,-8,0,18),Text="",TextColor3=Color3.new(1,1,1),TextSize=14,TextXAlignment=0,}},
 				{11,"UICorner",{CornerRadius=UDim.new(0,2),Parent={9},}},
-				{12,"Frame",{BackgroundColor3=Color3.new(0.094, 0.098, 0.12),BorderSizePixel=0,Name="Line",Parent={8},Position=UDim2.new(0,0,1,0),Size=UDim2.new(1,0,0,1),}},
-				{13,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BackgroundTransparency=1,BorderColor3=Color3.new(0.33725491166115,0.49019610881805,0.73725491762161),BorderSizePixel=0,Font=3,Name="Entry",Parent={1},Size=UDim2.new(1,0,0,22),Text="",TextSize=14,Visible=false,}},
+				{12,"Frame",{BackgroundColor3=Color3.new(0.14117647707462,0.14117647707462,0.14117647707462),BorderSizePixel=0,Name="Line",Parent={8},Position=UDim2.new(0,0,1,0),Size=UDim2.new(1,0,0,1),}},
+				{13,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.20392157137394, 0.20392157137394, 0.20392157137394),BackgroundTransparency=1,BorderColor3=Color3.new(0.33725491166115,0.49019610881805,0.73725491762161),BorderSizePixel=0,Font=3,Name="Entry",Parent={1},Size=UDim2.new(1,0,0,22),Text="",TextSize=14,Visible=false,}},
 				{14,"TextLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,BorderSizePixel=0,Font=3,Name="EntryName",Parent={13},Position=UDim2.new(0,24,0,0),Size=UDim2.new(1,-24,1,0),Text="Duplicate",TextColor3=Color3.new(0.86274516582489,0.86274516582489,0.86274516582489),TextSize=14,TextXAlignment=0,}},
 				{15,"TextLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Font=3,Name="Shortcut",Parent={13},Position=UDim2.new(0,24,0,0),Size=UDim2.new(1,-30,1,0),Text="Ctrl+D",TextColor3=Color3.new(0.86274516582489,0.86274516582489,0.86274516582489),TextSize=14,TextXAlignment=1,}},
 				{16,"ImageLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,ImageRectOffset=Vector2.new(304,0),ImageRectSize=Vector2.new(16,16),Name="Icon",Parent={13},Position=UDim2.new(0,2,0,3),ScaleType=4,Size=UDim2.new(0,16,0,16),}},
 				{17,"UICorner",{CornerRadius=UDim.new(0,4),Parent={13},}},
 				{18,"Frame",{BackgroundColor3=Color3.new(0.21568629145622,0.21568629145622,0.21568629145622),BackgroundTransparency=1,BorderSizePixel=0,Name="Divider",Parent={1},Position=UDim2.new(0,0,0,20),Size=UDim2.new(1,0,0,7),Visible=false,}},
-				{19,"Frame",{BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BorderSizePixel=0,Name="Line",Parent={18},Position=UDim2.new(0,0,0.5,0),Size=UDim2.new(1,0,0,1),}},
+				{19,"Frame",{BackgroundColor3=Color3.new(0.20392157137394, 0.20392157137394, 0.20392157137394),BorderSizePixel=0,Name="Line",Parent={18},Position=UDim2.new(0,0,0.5,0),Size=UDim2.new(1,0,0,1),}},
 				{20,"TextLabel",{AnchorPoint=Vector2.new(0,0.5),BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,BorderSizePixel=0,Font=3,Name="DividerName",Parent={18},Position=UDim2.new(0,2,0.5,0),Size=UDim2.new(1,-4,1,0),Text="Objects",TextColor3=Color3.new(1,1,1),TextSize=14,TextTransparency=0.60000002384186,TextXAlignment=0,Visible=false,}},
 			})
 			self.GuiElems.Main = contextGui.Main
@@ -7019,7 +7018,7 @@ local function main()
 						end
 					end)
 
-					scrollEvent = cloneref(game:GetService("RunService")).RenderStepped:Connect(function()
+					scrollEvent = cloneref(game["Run Service"].Parent:GetService("RunService")).RenderStepped:Connect(function()
 						if scrollPowerV ~= 0 or scrollPowerH ~= 0 then
 							obj:ScrollDelta(scrollPowerH,scrollPowerV)
 							updateSelection()
@@ -7033,7 +7032,7 @@ local function main()
 
 		local function makeFrame(obj)
 			local frame = create({
-				{1,"Frame",{BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BorderSizePixel = 0,Position=UDim2.new(0.5,-300,0.5,-200),Size=UDim2.new(0,600,0,400),}},
+				{1,"Frame",{BackgroundColor3=Color3.new(0.15686275064945,0.15686275064945,0.15686275064945),BorderSizePixel = 0,Position=UDim2.new(0.5,-300,0.5,-200),Size=UDim2.new(0,600,0,400),}},
 			})
 			local elems = {}
 			
@@ -7073,7 +7072,7 @@ local function main()
 			elems.LineNumbersLabel = lineNumbersLabel
 			elems.Cursor = cursor
 			elems.EditBox = editBox
-			elems.ScrollCorner = create({{1,"Frame",{BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BorderSizePixel=0,Name="ScrollCorner",Position=UDim2.new(1,-16,1,-16),Size=UDim2.new(0,16,0,16),Visible=false,}}})
+			elems.ScrollCorner = create({{1,"Frame",{BackgroundColor3=Color3.new(0.15686275064945,0.15686275064945,0.15686275064945),BorderSizePixel=0,Name="ScrollCorner",Position=UDim2.new(1,-16,1,-16),Size=UDim2.new(0,16,0,16),Visible=false,}}})
 			
 			elems.ScrollCorner.Parent = frame
 			linesFrame.InputBegan:Connect(function(input)
@@ -8072,14 +8071,14 @@ local function main()
 				{1,"Frame",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,BorderSizePixel=0,Name="Checkbox",Position=UDim2.new(0,3,0,3),Size=UDim2.new(0,16,0,16),}},
 				{2,"Frame",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,BorderSizePixel=0,Name="ripples",Parent={1},Size=UDim2.new(1,0,1,0),}},
 				{3,"Frame",{BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BorderSizePixel=0,Name="outline",Parent={1},Size=UDim2.new(0,16,0,16),}},
-				{4,"Frame",{BackgroundColor3=Color3.new(0.094, 0.098, 0.12),BorderSizePixel=0,Name="filler",Parent={3},Position=UDim2.new(0,1,0,1),Size=UDim2.new(0,14,0,14),}},
-				{5,"Frame",{BackgroundColor3=Color3.new(0.9, 0.9, 0.9),BorderSizePixel=0,Name="top",Parent={4},Size=UDim2.new(0,16,0,0),}},
-				{6,"Frame",{AnchorPoint=Vector2.new(0,1),BackgroundColor3=Color3.new(0.9, 0.9, 0.9),BorderSizePixel=0,Name="bottom",Parent={4},Position=UDim2.new(0,0,0,14),Size=UDim2.new(0,16,0,0),}},
-				{7,"Frame",{BackgroundColor3=Color3.new(0.9, 0.9, 0.9),BorderSizePixel=0,Name="left",Parent={4},Size=UDim2.new(0,0,0,16),}},
-				{8,"Frame",{AnchorPoint=Vector2.new(1,0),BackgroundColor3=Color3.new(0.9, 0.9, 0.9),BorderSizePixel=0,Name="right",Parent={4},Position=UDim2.new(0,14,0,0),Size=UDim2.new(0,0,0,16),}},
+				{4,"Frame",{BackgroundColor3=Color3.new(0.14117647707462,0.14117647707462,0.14117647707462),BorderSizePixel=0,Name="filler",Parent={3},Position=UDim2.new(0,1,0,1),Size=UDim2.new(0,14,0,14),}},
+				{5,"Frame",{BackgroundColor3=Color3.new(0.90196084976196,0.90196084976196,0.90196084976196),BorderSizePixel=0,Name="top",Parent={4},Size=UDim2.new(0,16,0,0),}},
+				{6,"Frame",{AnchorPoint=Vector2.new(0,1),BackgroundColor3=Color3.new(0.90196084976196,0.90196084976196,0.90196084976196),BorderSizePixel=0,Name="bottom",Parent={4},Position=UDim2.new(0,0,0,14),Size=UDim2.new(0,16,0,0),}},
+				{7,"Frame",{BackgroundColor3=Color3.new(0.90196084976196,0.90196084976196,0.90196084976196),BorderSizePixel=0,Name="left",Parent={4},Size=UDim2.new(0,0,0,16),}},
+				{8,"Frame",{AnchorPoint=Vector2.new(1,0),BackgroundColor3=Color3.new(0.90196084976196,0.90196084976196,0.90196084976196),BorderSizePixel=0,Name="right",Parent={4},Position=UDim2.new(0,14,0,0),Size=UDim2.new(0,0,0,16),}},
 				{9,"Frame",{AnchorPoint=Vector2.new(0.5,0.5),BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,BorderSizePixel=0,ClipsDescendants=true,Name="checkmark",Parent={4},Position=UDim2.new(0.5,0,0.5,0),Size=UDim2.new(0,0,0,20),}},
-				{10,"ImageLabel",{AnchorPoint=Vector2.new(0.5,0.5),BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,BorderSizePixel=0,Image="rbxassetid://133170477753693",Parent={9},Position=UDim2.new(0.5,0,0.5,0),ScaleType=3,Size=UDim2.new(0,15,0,11),}},
-				{11,"ImageLabel",{AnchorPoint=Vector2.new(0.5,0.5),BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Image="rbxassetid://133170477753693",ImageColor3=Color3.new(0.20784313976765,0.69803923368454,0.98431372642517),Name="checkmark2",Parent={4},Position=UDim2.new(0.5,0,0.5,0),Size=UDim2.new(0,12,0,12),Visible=false,}},
+				{10,"ImageLabel",{AnchorPoint=Vector2.new(0.5,0.5),BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,BorderSizePixel=0,Image="rbxassetid://6234266378",Parent={9},Position=UDim2.new(0.5,0,0.5,0),ScaleType=3,Size=UDim2.new(0,15,0,11),}},
+				{11,"ImageLabel",{AnchorPoint=Vector2.new(0.5,0.5),BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Image="rbxassetid://6401617475",ImageColor3=Color3.new(0.20784313976765,0.69803923368454,0.98431372642517),Name="checkmark2",Parent={4},Position=UDim2.new(0.5,0,0.5,0),Size=UDim2.new(0,12,0,12),Visible=false,}},
 				{12,"ImageLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Image="rbxassetid://6425281788",ImageTransparency=0.20000000298023,Name="middle",Parent={4},ScaleType=2,Size=UDim2.new(1,0,1,0),TileSize=UDim2.new(0,2,0,2),Visible=false,}},
 				{13,"UICorner",{CornerRadius=UDim.new(0,2),Parent={3},}},
 			})
@@ -8328,8 +8327,8 @@ local function main()
 		local function createGui(self)
 			local gui = create({
 				{1,"ScreenGui",{Name="BrickColor",}},
-				{2,"Frame",{Active=true,BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BorderColor3=Color3.new(0.137, 0.149, 0.176),Parent={1},Position=UDim2.new(0.40000000596046,0,0.40000000596046,0),Size=UDim2.new(0,337,0,380),}},
-				{3,"TextButton",{BackgroundColor3=Color3.new(0.203, 0.525, 0.996),BorderColor3=Color3.new(0.137, 0.149, 0.176),BorderSizePixel=0,Font=3,Name="MoreColors",Parent={2},Position=UDim2.new(0,5,1,-30),Size=UDim2.new(1,-10,0,25),Text="More Colors",TextColor3=Color3.new(1,1,1),TextSize=14,}},
+				{2,"Frame",{Active=true,BackgroundColor3=Color3.new(0.17647059261799,0.17647059261799,0.17647059261799),BorderColor3=Color3.new(0.137, 0.149, 0.176),Parent={1},Position=UDim2.new(0.40000000596046,0,0.40000000596046,0),Size=UDim2.new(0,337,0,380),}},
+				{3,"TextButton",{BackgroundColor3=Color3.new(0.2352941185236,0.2352941185236,0.2352941185236),BorderColor3=Color3.new(0.21568627655506,0.21568627655506,0.21568627655506),BorderSizePixel=0,Font=3,Name="MoreColors",Parent={2},Position=UDim2.new(0,5,1,-30),Size=UDim2.new(1,-10,0,25),Text="More Colors",TextColor3=Color3.new(1,1,1),TextSize=14,}},
 				{4,"ImageLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,BorderSizePixel=0,Image="rbxassetid://1281023007",ImageColor3=Color3.new(0.33333334326744,0.33333334326744,0.49803924560547),Name="Hex",Parent={2},Size=UDim2.new(0,35,0,35),Visible=false,}},
 			})
 			local colorFrame = gui.Frame
@@ -8442,104 +8441,104 @@ local function main()
 			newMt.OnPreview = Lib.Signal.new()
 
 			local guiContents = create({
-				{1,"Frame",{BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BorderSizePixel=0,ClipsDescendants=true,Name="Content",Position=UDim2.new(0,0,0,20),Size=UDim2.new(1,0,1,-20),}},
+				{1,"Frame",{BackgroundColor3=Color3.new(0.17647059261799,0.17647059261799,0.17647059261799),BorderSizePixel=0,ClipsDescendants=true,Name="Content",Position=UDim2.new(0,0,0,20),Size=UDim2.new(1,0,1,-20),}},
 				{2,"Frame",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Name="BasicColors",Parent={1},Position=UDim2.new(0,5,0,5),Size=UDim2.new(0,180,0,200),}},
 				{3,"TextLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Font=3,Name="Title",Parent={2},Position=UDim2.new(0,0,0,-5),Size=UDim2.new(1,0,0,26),Text="Basic Colors",TextColor3=Color3.new(0.86274516582489,0.86274516582489,0.86274516582489),TextSize=14,TextXAlignment=0,}},
-				{4,"Frame",{BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BorderColor3=Color3.new(0.2, 0.22, 0.25),Name="Blue",Parent={1},Position=UDim2.new(1,-63,0,255),Size=UDim2.new(0,52,0,16),}},
-				{5,"TextBox",{BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BackgroundTransparency=1,BorderColor3=Color3.new(0.2, 0.22, 0.25),Font=3,Name="Input",Parent={4},Position=UDim2.new(0,2,0,0),Size=UDim2.new(0,50,0,16),Text="0",TextColor3=Color3.new(0.86274516582489,0.86274516582489,0.86274516582489),TextSize=14,TextXAlignment=0,}},
+				{4,"Frame",{BackgroundColor3=Color3.new(0.14901961386204,0.14901961386204,0.14901961386204),BorderColor3=Color3.new(0.12549020349979,0.12549020349979,0.12549020349979),Name="Blue",Parent={1},Position=UDim2.new(1,-63,0,255),Size=UDim2.new(0,52,0,16),}},
+				{5,"TextBox",{BackgroundColor3=Color3.new(0.25098040699959,0.25098040699959,0.25098040699959),BackgroundTransparency=1,BorderColor3=Color3.new(0.37647062540054,0.37647062540054,0.37647062540054),Font=3,Name="Input",Parent={4},Position=UDim2.new(0,2,0,0),Size=UDim2.new(0,50,0,16),Text="0",TextColor3=Color3.new(0.86274516582489,0.86274516582489,0.86274516582489),TextSize=14,TextXAlignment=0,}},
 				{6,"Frame",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,BorderSizePixel=0,Name="ArrowFrame",Parent={5},Position=UDim2.new(1,-16,0,0),Size=UDim2.new(0,16,1,0),}},
 				{7,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,BorderSizePixel=0,Font=3,Name="Up",Parent={6},Size=UDim2.new(1,0,0,8),Text="",TextSize=14,}},
 				{8,"Frame",{BackgroundTransparency=1,Name="Arrow",Parent={7},Size=UDim2.new(0,16,0,8),}},
-				{9,"Frame",{BackgroundColor3=Color3.new(0.094, 0.098, 0.122),BorderSizePixel=0,Parent={8},Position=UDim2.new(0,8,0,3),Size=UDim2.new(0,1,0,1),}},
-				{10,"Frame",{BackgroundColor3=Color3.new(0.094, 0.098, 0.122),BorderSizePixel=0,Parent={8},Position=UDim2.new(0,7,0,4),Size=UDim2.new(0,3,0,1),}},
-				{11,"Frame",{BackgroundColor3=Color3.new(0.094, 0.098, 0.122),BorderSizePixel=0,Parent={8},Position=UDim2.new(0,6,0,5),Size=UDim2.new(0,5,0,1),}},
+				{9,"Frame",{BackgroundColor3=Color3.new(0.86274510622025,0.86274510622025,0.86274510622025),BorderSizePixel=0,Parent={8},Position=UDim2.new(0,8,0,3),Size=UDim2.new(0,1,0,1),}},
+				{10,"Frame",{BackgroundColor3=Color3.new(0.86274510622025,0.86274510622025,0.86274510622025),BorderSizePixel=0,Parent={8},Position=UDim2.new(0,7,0,4),Size=UDim2.new(0,3,0,1),}},
+				{11,"Frame",{BackgroundColor3=Color3.new(0.86274510622025,0.86274510622025,0.86274510622025),BorderSizePixel=0,Parent={8},Position=UDim2.new(0,6,0,5),Size=UDim2.new(0,5,0,1),}},
 				{12,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,BorderSizePixel=0,Font=3,Name="Down",Parent={6},Position=UDim2.new(0,0,0,8),Size=UDim2.new(1,0,0,8),Text="",TextSize=14,}},
 				{13,"Frame",{BackgroundTransparency=1,Name="Arrow",Parent={12},Size=UDim2.new(0,16,0,8),}},
-				{14,"Frame",{BackgroundColor3=Color3.new(0.094, 0.098, 0.122),BorderSizePixel=0,Parent={13},Position=UDim2.new(0,8,0,5),Size=UDim2.new(0,1,0,1),}},
-				{15,"Frame",{BackgroundColor3=Color3.new(0.094, 0.098, 0.122),BorderSizePixel=0,Parent={13},Position=UDim2.new(0,7,0,4),Size=UDim2.new(0,3,0,1),}},
-				{16,"Frame",{BackgroundColor3=Color3.new(0.094, 0.098, 0.122),BorderSizePixel=0,Parent={13},Position=UDim2.new(0,6,0,3),Size=UDim2.new(0,5,0,1),}},
+				{14,"Frame",{BackgroundColor3=Color3.new(0.86274510622025,0.86274510622025,0.86274510622025),BorderSizePixel=0,Parent={13},Position=UDim2.new(0,8,0,5),Size=UDim2.new(0,1,0,1),}},
+				{15,"Frame",{BackgroundColor3=Color3.new(0.86274510622025,0.86274510622025,0.86274510622025),BorderSizePixel=0,Parent={13},Position=UDim2.new(0,7,0,4),Size=UDim2.new(0,3,0,1),}},
+				{16,"Frame",{BackgroundColor3=Color3.new(0.86274510622025,0.86274510622025,0.86274510622025),BorderSizePixel=0,Parent={13},Position=UDim2.new(0,6,0,3),Size=UDim2.new(0,5,0,1),}},
 				{17,"TextLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Font=3,Name="Title",Parent={4},Position=UDim2.new(0,-40,0,0),Size=UDim2.new(0,34,1,0),Text="Blue:",TextColor3=Color3.new(0.86274516582489,0.86274516582489,0.86274516582489),TextSize=14,TextXAlignment=1,}},
-				{18,"Frame",{BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BorderSizePixel=0,ClipsDescendants=true,Name="ColorSpaceFrame",Parent={1},Position=UDim2.new(1,-261,0,4),Size=UDim2.new(0,222,0,202),}},
-				{19,"ImageLabel",{BackgroundColor3=Color3.new(1,1,1),BorderColor3=Color3.new(0.2, 0.22, 0.25),BorderSizePixel=0,Image="rbxassetid://125227880095681",Name="ColorSpace",Parent={18},Position=UDim2.new(0,1,0,1),Size=UDim2.new(0,220,0,200),}},
+				{18,"Frame",{BackgroundColor3=Color3.new(0.21568627655506,0.21568627655506,0.21568627655506),BorderSizePixel=0,ClipsDescendants=true,Name="ColorSpaceFrame",Parent={1},Position=UDim2.new(1,-261,0,4),Size=UDim2.new(0,222,0,202),}},
+				{19,"ImageLabel",{BackgroundColor3=Color3.new(1,1,1),BorderColor3=Color3.new(0.37647062540054,0.37647062540054,0.37647062540054),BorderSizePixel=0,Image="rbxassetid://1072518406",Name="ColorSpace",Parent={18},Position=UDim2.new(0,1,0,1),Size=UDim2.new(0,220,0,200),}},
 				{20,"Frame",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,BorderSizePixel=0,Name="Scope",Parent={19},Position=UDim2.new(0,210,0,190),Size=UDim2.new(0,20,0,20),}},
 				{21,"Frame",{BackgroundColor3=Color3.new(0,0,0),BorderSizePixel=0,Name="Line",Parent={20},Position=UDim2.new(0,9,0,0),Size=UDim2.new(0,2,0,20),}},
 				{22,"Frame",{BackgroundColor3=Color3.new(0,0,0),BorderSizePixel=0,Name="Line",Parent={20},Position=UDim2.new(0,0,0,9),Size=UDim2.new(0,20,0,2),}},
 				{23,"Frame",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Name="CustomColors",Parent={1},Position=UDim2.new(0,5,0,210),Size=UDim2.new(0,180,0,90),}},
 				{24,"TextLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Font=3,Name="Title",Parent={23},Size=UDim2.new(1,0,0,20),Text="Custom Colors (RC = Set)",TextColor3=Color3.new(0.86274516582489,0.86274516582489,0.86274516582489),TextSize=14,TextXAlignment=0,}},
-				{25,"Frame",{BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BorderColor3=Color3.new(0.2, 0.22, 0.25),Name="Green",Parent={1},Position=UDim2.new(1,-63,0,233),Size=UDim2.new(0,52,0,16),}},
-				{26,"TextBox",{BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BackgroundTransparency=1,BorderColor3=Color3.new(0.2, 0.22, 0.25),Font=3,Name="Input",Parent={25},Position=UDim2.new(0,2,0,0),Size=UDim2.new(0,50,0,16),Text="0",TextColor3=Color3.new(0.86274516582489,0.86274516582489,0.86274516582489),TextSize=14,TextXAlignment=0,}},
+				{25,"Frame",{BackgroundColor3=Color3.new(0.14901961386204,0.14901961386204,0.14901961386204),BorderColor3=Color3.new(0.12549020349979,0.12549020349979,0.12549020349979),Name="Green",Parent={1},Position=UDim2.new(1,-63,0,233),Size=UDim2.new(0,52,0,16),}},
+				{26,"TextBox",{BackgroundColor3=Color3.new(0.25098040699959,0.25098040699959,0.25098040699959),BackgroundTransparency=1,BorderColor3=Color3.new(0.37647062540054,0.37647062540054,0.37647062540054),Font=3,Name="Input",Parent={25},Position=UDim2.new(0,2,0,0),Size=UDim2.new(0,50,0,16),Text="0",TextColor3=Color3.new(0.86274516582489,0.86274516582489,0.86274516582489),TextSize=14,TextXAlignment=0,}},
 				{27,"Frame",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,BorderSizePixel=0,Name="ArrowFrame",Parent={26},Position=UDim2.new(1,-16,0,0),Size=UDim2.new(0,16,1,0),}},
 				{28,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,BorderSizePixel=0,Font=3,Name="Up",Parent={27},Size=UDim2.new(1,0,0,8),Text="",TextSize=14,}},
 				{29,"Frame",{BackgroundTransparency=1,Name="Arrow",Parent={28},Size=UDim2.new(0,16,0,8),}},
-				{30,"Frame",{BackgroundColor3=Color3.new(0.094, 0.098, 0.122),BorderSizePixel=0,Parent={29},Position=UDim2.new(0,8,0,3),Size=UDim2.new(0,1,0,1),}},
-				{31,"Frame",{BackgroundColor3=Color3.new(0.094, 0.098, 0.122),BorderSizePixel=0,Parent={29},Position=UDim2.new(0,7,0,4),Size=UDim2.new(0,3,0,1),}},
-				{32,"Frame",{BackgroundColor3=Color3.new(0.094, 0.098, 0.122),BorderSizePixel=0,Parent={29},Position=UDim2.new(0,6,0,5),Size=UDim2.new(0,5,0,1),}},
+				{30,"Frame",{BackgroundColor3=Color3.new(0.86274510622025,0.86274510622025,0.86274510622025),BorderSizePixel=0,Parent={29},Position=UDim2.new(0,8,0,3),Size=UDim2.new(0,1,0,1),}},
+				{31,"Frame",{BackgroundColor3=Color3.new(0.86274510622025,0.86274510622025,0.86274510622025),BorderSizePixel=0,Parent={29},Position=UDim2.new(0,7,0,4),Size=UDim2.new(0,3,0,1),}},
+				{32,"Frame",{BackgroundColor3=Color3.new(0.86274510622025,0.86274510622025,0.86274510622025),BorderSizePixel=0,Parent={29},Position=UDim2.new(0,6,0,5),Size=UDim2.new(0,5,0,1),}},
 				{33,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,BorderSizePixel=0,Font=3,Name="Down",Parent={27},Position=UDim2.new(0,0,0,8),Size=UDim2.new(1,0,0,8),Text="",TextSize=14,}},
 				{34,"Frame",{BackgroundTransparency=1,Name="Arrow",Parent={33},Size=UDim2.new(0,16,0,8),}},
-				{35,"Frame",{BackgroundColor3=Color3.new(0.094, 0.098, 0.122),BorderSizePixel=0,Parent={34},Position=UDim2.new(0,8,0,5),Size=UDim2.new(0,1,0,1),}},
-				{36,"Frame",{BackgroundColor3=Color3.new(0.094, 0.098, 0.122),BorderSizePixel=0,Parent={34},Position=UDim2.new(0,7,0,4),Size=UDim2.new(0,3,0,1),}},
-				{37,"Frame",{BackgroundColor3=Color3.new(0.094, 0.098, 0.122),BorderSizePixel=0,Parent={34},Position=UDim2.new(0,6,0,3),Size=UDim2.new(0,5,0,1),}},
+				{35,"Frame",{BackgroundColor3=Color3.new(0.86274510622025,0.86274510622025,0.86274510622025),BorderSizePixel=0,Parent={34},Position=UDim2.new(0,8,0,5),Size=UDim2.new(0,1,0,1),}},
+				{36,"Frame",{BackgroundColor3=Color3.new(0.86274510622025,0.86274510622025,0.86274510622025),BorderSizePixel=0,Parent={34},Position=UDim2.new(0,7,0,4),Size=UDim2.new(0,3,0,1),}},
+				{37,"Frame",{BackgroundColor3=Color3.new(0.86274510622025,0.86274510622025,0.86274510622025),BorderSizePixel=0,Parent={34},Position=UDim2.new(0,6,0,3),Size=UDim2.new(0,5,0,1),}},
 				{38,"TextLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Font=3,Name="Title",Parent={25},Position=UDim2.new(0,-40,0,0),Size=UDim2.new(0,34,1,0),Text="Green:",TextColor3=Color3.new(0.86274516582489,0.86274516582489,0.86274516582489),TextSize=14,TextXAlignment=1,}},
-				{39,"Frame",{BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BorderColor3=Color3.new(0.2, 0.22, 0.25),Name="Hue",Parent={1},Position=UDim2.new(1,-180,0,211),Size=UDim2.new(0,52,0,16),}},
-				{40,"TextBox",{BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BackgroundTransparency=1,BorderColor3=Color3.new(0.2, 0.22, 0.25),Font=3,Name="Input",Parent={39},Position=UDim2.new(0,2,0,0),Size=UDim2.new(0,50,0,16),Text="0",TextColor3=Color3.new(0.86274516582489,0.86274516582489,0.86274516582489),TextSize=14,TextXAlignment=0,}},
+				{39,"Frame",{BackgroundColor3=Color3.new(0.14901961386204,0.14901961386204,0.14901961386204),BorderColor3=Color3.new(0.12549020349979,0.12549020349979,0.12549020349979),Name="Hue",Parent={1},Position=UDim2.new(1,-180,0,211),Size=UDim2.new(0,52,0,16),}},
+				{40,"TextBox",{BackgroundColor3=Color3.new(0.25098040699959,0.25098040699959,0.25098040699959),BackgroundTransparency=1,BorderColor3=Color3.new(0.37647062540054,0.37647062540054,0.37647062540054),Font=3,Name="Input",Parent={39},Position=UDim2.new(0,2,0,0),Size=UDim2.new(0,50,0,16),Text="0",TextColor3=Color3.new(0.86274516582489,0.86274516582489,0.86274516582489),TextSize=14,TextXAlignment=0,}},
 				{41,"Frame",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,BorderSizePixel=0,Name="ArrowFrame",Parent={40},Position=UDim2.new(1,-16,0,0),Size=UDim2.new(0,16,1,0),}},
 				{42,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,BorderSizePixel=0,Font=3,Name="Up",Parent={41},Size=UDim2.new(1,0,0,8),Text="",TextSize=14,}},
 				{43,"Frame",{BackgroundTransparency=1,Name="Arrow",Parent={42},Size=UDim2.new(0,16,0,8),}},
-				{44,"Frame",{BackgroundColor3=Color3.new(0.094, 0.098, 0.122),BorderSizePixel=0,Parent={43},Position=UDim2.new(0,8,0,3),Size=UDim2.new(0,1,0,1),}},
-				{45,"Frame",{BackgroundColor3=Color3.new(0.094, 0.098, 0.122),BorderSizePixel=0,Parent={43},Position=UDim2.new(0,7,0,4),Size=UDim2.new(0,3,0,1),}},
-				{46,"Frame",{BackgroundColor3=Color3.new(0.094, 0.098, 0.122),BorderSizePixel=0,Parent={43},Position=UDim2.new(0,6,0,5),Size=UDim2.new(0,5,0,1),}},
+				{44,"Frame",{BackgroundColor3=Color3.new(0.86274510622025,0.86274510622025,0.86274510622025),BorderSizePixel=0,Parent={43},Position=UDim2.new(0,8,0,3),Size=UDim2.new(0,1,0,1),}},
+				{45,"Frame",{BackgroundColor3=Color3.new(0.86274510622025,0.86274510622025,0.86274510622025),BorderSizePixel=0,Parent={43},Position=UDim2.new(0,7,0,4),Size=UDim2.new(0,3,0,1),}},
+				{46,"Frame",{BackgroundColor3=Color3.new(0.86274510622025,0.86274510622025,0.86274510622025),BorderSizePixel=0,Parent={43},Position=UDim2.new(0,6,0,5),Size=UDim2.new(0,5,0,1),}},
 				{47,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,BorderSizePixel=0,Font=3,Name="Down",Parent={41},Position=UDim2.new(0,0,0,8),Size=UDim2.new(1,0,0,8),Text="",TextSize=14,}},
 				{48,"Frame",{BackgroundTransparency=1,Name="Arrow",Parent={47},Size=UDim2.new(0,16,0,8),}},
-				{49,"Frame",{BackgroundColor3=Color3.new(0.094, 0.098, 0.122),BorderSizePixel=0,Parent={48},Position=UDim2.new(0,8,0,5),Size=UDim2.new(0,1,0,1),}},
-				{50,"Frame",{BackgroundColor3=Color3.new(0.094, 0.098, 0.122),BorderSizePixel=0,Parent={48},Position=UDim2.new(0,7,0,4),Size=UDim2.new(0,3,0,1),}},
-				{51,"Frame",{BackgroundColor3=Color3.new(0.094, 0.098, 0.122),BorderSizePixel=0,Parent={48},Position=UDim2.new(0,6,0,3),Size=UDim2.new(0,5,0,1),}},
+				{49,"Frame",{BackgroundColor3=Color3.new(0.86274510622025,0.86274510622025,0.86274510622025),BorderSizePixel=0,Parent={48},Position=UDim2.new(0,8,0,5),Size=UDim2.new(0,1,0,1),}},
+				{50,"Frame",{BackgroundColor3=Color3.new(0.86274510622025,0.86274510622025,0.86274510622025),BorderSizePixel=0,Parent={48},Position=UDim2.new(0,7,0,4),Size=UDim2.new(0,3,0,1),}},
+				{51,"Frame",{BackgroundColor3=Color3.new(0.86274510622025,0.86274510622025,0.86274510622025),BorderSizePixel=0,Parent={48},Position=UDim2.new(0,6,0,3),Size=UDim2.new(0,5,0,1),}},
 				{52,"TextLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Font=3,Name="Title",Parent={39},Position=UDim2.new(0,-40,0,0),Size=UDim2.new(0,34,1,0),Text="Hue:",TextColor3=Color3.new(0.86274516582489,0.86274516582489,0.86274516582489),TextSize=14,TextXAlignment=1,}},
-				{53,"Frame",{BackgroundColor3=Color3.new(1,1,1),BorderColor3=Color3.new(0.137, 0.149, 0.176),Name="Preview",Parent={1},Position=UDim2.new(1,-260,0,211),Size=UDim2.new(0,35,1,-245),}},
-				{54,"Frame",{BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BorderColor3=Color3.new(0.2, 0.22, 0.25),Name="Red",Parent={1},Position=UDim2.new(1,-63,0,211),Size=UDim2.new(0,52,0,16),}},
-				{55,"TextBox",{BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BackgroundTransparency=1,BorderColor3=Color3.new(0.2, 0.22, 0.25),Font=3,Name="Input",Parent={54},Position=UDim2.new(0,2,0,0),Size=UDim2.new(0,50,0,16),Text="0",TextColor3=Color3.new(0.86274516582489,0.86274516582489,0.86274516582489),TextSize=14,TextXAlignment=0,}},
+				{53,"Frame",{BackgroundColor3=Color3.new(1,1,1),BorderColor3=Color3.new(0.21568627655506,0.21568627655506,0.21568627655506),Name="Preview",Parent={1},Position=UDim2.new(1,-260,0,211),Size=UDim2.new(0,35,1,-245),}},
+				{54,"Frame",{BackgroundColor3=Color3.new(0.14901961386204,0.14901961386204,0.14901961386204),BorderColor3=Color3.new(0.12549020349979,0.12549020349979,0.12549020349979),Name="Red",Parent={1},Position=UDim2.new(1,-63,0,211),Size=UDim2.new(0,52,0,16),}},
+				{55,"TextBox",{BackgroundColor3=Color3.new(0.25098040699959,0.25098040699959,0.25098040699959),BackgroundTransparency=1,BorderColor3=Color3.new(0.37647062540054,0.37647062540054,0.37647062540054),Font=3,Name="Input",Parent={54},Position=UDim2.new(0,2,0,0),Size=UDim2.new(0,50,0,16),Text="0",TextColor3=Color3.new(0.86274516582489,0.86274516582489,0.86274516582489),TextSize=14,TextXAlignment=0,}},
 				{56,"Frame",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,BorderSizePixel=0,Name="ArrowFrame",Parent={55},Position=UDim2.new(1,-16,0,0),Size=UDim2.new(0,16,1,0),}},
 				{57,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,BorderSizePixel=0,Font=3,Name="Up",Parent={56},Size=UDim2.new(1,0,0,8),Text="",TextSize=14,}},
 				{58,"Frame",{BackgroundTransparency=1,Name="Arrow",Parent={57},Size=UDim2.new(0,16,0,8),}},
-				{59,"Frame",{BackgroundColor3=Color3.new(0.094, 0.098, 0.122),BorderSizePixel=0,Parent={58},Position=UDim2.new(0,8,0,3),Size=UDim2.new(0,1,0,1),}},
-				{60,"Frame",{BackgroundColor3=Color3.new(0.094, 0.098, 0.122),BorderSizePixel=0,Parent={58},Position=UDim2.new(0,7,0,4),Size=UDim2.new(0,3,0,1),}},
-				{61,"Frame",{BackgroundColor3=Color3.new(0.094, 0.098, 0.122),BorderSizePixel=0,Parent={58},Position=UDim2.new(0,6,0,5),Size=UDim2.new(0,5,0,1),}},
+				{59,"Frame",{BackgroundColor3=Color3.new(0.86274510622025,0.86274510622025,0.86274510622025),BorderSizePixel=0,Parent={58},Position=UDim2.new(0,8,0,3),Size=UDim2.new(0,1,0,1),}},
+				{60,"Frame",{BackgroundColor3=Color3.new(0.86274510622025,0.86274510622025,0.86274510622025),BorderSizePixel=0,Parent={58},Position=UDim2.new(0,7,0,4),Size=UDim2.new(0,3,0,1),}},
+				{61,"Frame",{BackgroundColor3=Color3.new(0.86274510622025,0.86274510622025,0.86274510622025),BorderSizePixel=0,Parent={58},Position=UDim2.new(0,6,0,5),Size=UDim2.new(0,5,0,1),}},
 				{62,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,BorderSizePixel=0,Font=3,Name="Down",Parent={56},Position=UDim2.new(0,0,0,8),Size=UDim2.new(1,0,0,8),Text="",TextSize=14,}},
 				{63,"Frame",{BackgroundTransparency=1,Name="Arrow",Parent={62},Size=UDim2.new(0,16,0,8),}},
-				{64,"Frame",{BackgroundColor3=Color3.new(0.094, 0.098, 0.122),BorderSizePixel=0,Parent={63},Position=UDim2.new(0,8,0,5),Size=UDim2.new(0,1,0,1),}},
-				{65,"Frame",{BackgroundColor3=Color3.new(0.094, 0.098, 0.122),BorderSizePixel=0,Parent={63},Position=UDim2.new(0,7,0,4),Size=UDim2.new(0,3,0,1),}},
-				{66,"Frame",{BackgroundColor3=Color3.new(0.094, 0.098, 0.122),BorderSizePixel=0,Parent={63},Position=UDim2.new(0,6,0,3),Size=UDim2.new(0,5,0,1),}},
+				{64,"Frame",{BackgroundColor3=Color3.new(0.86274510622025,0.86274510622025,0.86274510622025),BorderSizePixel=0,Parent={63},Position=UDim2.new(0,8,0,5),Size=UDim2.new(0,1,0,1),}},
+				{65,"Frame",{BackgroundColor3=Color3.new(0.86274510622025,0.86274510622025,0.86274510622025),BorderSizePixel=0,Parent={63},Position=UDim2.new(0,7,0,4),Size=UDim2.new(0,3,0,1),}},
+				{66,"Frame",{BackgroundColor3=Color3.new(0.86274510622025,0.86274510622025,0.86274510622025),BorderSizePixel=0,Parent={63},Position=UDim2.new(0,6,0,3),Size=UDim2.new(0,5,0,1),}},
 				{67,"TextLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Font=3,Name="Title",Parent={54},Position=UDim2.new(0,-40,0,0),Size=UDim2.new(0,34,1,0),Text="Red:",TextColor3=Color3.new(0.86274516582489,0.86274516582489,0.86274516582489),TextSize=14,TextXAlignment=1,}},
-				{68,"Frame",{BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BorderColor3=Color3.new(0.2, 0.22, 0.25),Name="Sat",Parent={1},Position=UDim2.new(1,-180,0,233),Size=UDim2.new(0,52,0,16),}},
-				{69,"TextBox",{BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BackgroundTransparency=1,BorderColor3=Color3.new(0.2, 0.22, 0.25),Font=3,Name="Input",Parent={68},Position=UDim2.new(0,2,0,0),Size=UDim2.new(0,50,0,16),Text="0",TextColor3=Color3.new(0.86274516582489,0.86274516582489,0.86274516582489),TextSize=14,TextXAlignment=0,}},
+				{68,"Frame",{BackgroundColor3=Color3.new(0.14901961386204,0.14901961386204,0.14901961386204),BorderColor3=Color3.new(0.12549020349979,0.12549020349979,0.12549020349979),Name="Sat",Parent={1},Position=UDim2.new(1,-180,0,233),Size=UDim2.new(0,52,0,16),}},
+				{69,"TextBox",{BackgroundColor3=Color3.new(0.25098040699959,0.25098040699959,0.25098040699959),BackgroundTransparency=1,BorderColor3=Color3.new(0.37647062540054,0.37647062540054,0.37647062540054),Font=3,Name="Input",Parent={68},Position=UDim2.new(0,2,0,0),Size=UDim2.new(0,50,0,16),Text="0",TextColor3=Color3.new(0.86274516582489,0.86274516582489,0.86274516582489),TextSize=14,TextXAlignment=0,}},
 				{70,"Frame",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,BorderSizePixel=0,Name="ArrowFrame",Parent={69},Position=UDim2.new(1,-16,0,0),Size=UDim2.new(0,16,1,0),}},
 				{71,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,BorderSizePixel=0,Font=3,Name="Up",Parent={70},Size=UDim2.new(1,0,0,8),Text="",TextSize=14,}},
 				{72,"Frame",{BackgroundTransparency=1,Name="Arrow",Parent={71},Size=UDim2.new(0,16,0,8),}},
-				{73,"Frame",{BackgroundColor3=Color3.new(0.094, 0.098, 0.122),BorderSizePixel=0,Parent={72},Position=UDim2.new(0,8,0,3),Size=UDim2.new(0,1,0,1),}},
-				{74,"Frame",{BackgroundColor3=Color3.new(0.094, 0.098, 0.122),BorderSizePixel=0,Parent={72},Position=UDim2.new(0,7,0,4),Size=UDim2.new(0,3,0,1),}},
-				{75,"Frame",{BackgroundColor3=Color3.new(0.094, 0.098, 0.122),BorderSizePixel=0,Parent={72},Position=UDim2.new(0,6,0,5),Size=UDim2.new(0,5,0,1),}},
+				{73,"Frame",{BackgroundColor3=Color3.new(0.86274510622025,0.86274510622025,0.86274510622025),BorderSizePixel=0,Parent={72},Position=UDim2.new(0,8,0,3),Size=UDim2.new(0,1,0,1),}},
+				{74,"Frame",{BackgroundColor3=Color3.new(0.86274510622025,0.86274510622025,0.86274510622025),BorderSizePixel=0,Parent={72},Position=UDim2.new(0,7,0,4),Size=UDim2.new(0,3,0,1),}},
+				{75,"Frame",{BackgroundColor3=Color3.new(0.86274510622025,0.86274510622025,0.86274510622025),BorderSizePixel=0,Parent={72},Position=UDim2.new(0,6,0,5),Size=UDim2.new(0,5,0,1),}},
 				{76,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,BorderSizePixel=0,Font=3,Name="Down",Parent={70},Position=UDim2.new(0,0,0,8),Size=UDim2.new(1,0,0,8),Text="",TextSize=14,}},
 				{77,"Frame",{BackgroundTransparency=1,Name="Arrow",Parent={76},Size=UDim2.new(0,16,0,8),}},
-				{78,"Frame",{BackgroundColor3=Color3.new(0.094, 0.098, 0.122),BorderSizePixel=0,Parent={77},Position=UDim2.new(0,8,0,5),Size=UDim2.new(0,1,0,1),}},
-				{79,"Frame",{BackgroundColor3=Color3.new(0.094, 0.098, 0.122),BorderSizePixel=0,Parent={77},Position=UDim2.new(0,7,0,4),Size=UDim2.new(0,3,0,1),}},
-				{80,"Frame",{BackgroundColor3=Color3.new(0.094, 0.098, 0.122),BorderSizePixel=0,Parent={77},Position=UDim2.new(0,6,0,3),Size=UDim2.new(0,5,0,1),}},
+				{78,"Frame",{BackgroundColor3=Color3.new(0.86274510622025,0.86274510622025,0.86274510622025),BorderSizePixel=0,Parent={77},Position=UDim2.new(0,8,0,5),Size=UDim2.new(0,1,0,1),}},
+				{79,"Frame",{BackgroundColor3=Color3.new(0.86274510622025,0.86274510622025,0.86274510622025),BorderSizePixel=0,Parent={77},Position=UDim2.new(0,7,0,4),Size=UDim2.new(0,3,0,1),}},
+				{80,"Frame",{BackgroundColor3=Color3.new(0.86274510622025,0.86274510622025,0.86274510622025),BorderSizePixel=0,Parent={77},Position=UDim2.new(0,6,0,3),Size=UDim2.new(0,5,0,1),}},
 				{81,"TextLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Font=3,Name="Title",Parent={68},Position=UDim2.new(0,-40,0,0),Size=UDim2.new(0,34,1,0),Text="Sat:",TextColor3=Color3.new(0.86274516582489,0.86274516582489,0.86274516582489),TextSize=14,TextXAlignment=1,}},
-				{82,"Frame",{BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BorderColor3=Color3.new(0.2, 0.22, 0.25),Name="Val",Parent={1},Position=UDim2.new(1,-180,0,255),Size=UDim2.new(0,52,0,16),}},
-				{83,"TextBox",{BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BackgroundTransparency=1,BorderColor3=Color3.new(0.2, 0.22, 0.25),Font=3,Name="Input",Parent={82},Position=UDim2.new(0,2,0,0),Size=UDim2.new(0,50,0,16),Text="255",TextColor3=Color3.new(0.86274516582489,0.86274516582489,0.86274516582489),TextSize=14,TextXAlignment=0,}},
+				{82,"Frame",{BackgroundColor3=Color3.new(0.14901961386204,0.14901961386204,0.14901961386204),BorderColor3=Color3.new(0.12549020349979,0.12549020349979,0.12549020349979),Name="Val",Parent={1},Position=UDim2.new(1,-180,0,255),Size=UDim2.new(0,52,0,16),}},
+				{83,"TextBox",{BackgroundColor3=Color3.new(0.25098040699959,0.25098040699959,0.25098040699959),BackgroundTransparency=1,BorderColor3=Color3.new(0.37647062540054,0.37647062540054,0.37647062540054),Font=3,Name="Input",Parent={82},Position=UDim2.new(0,2,0,0),Size=UDim2.new(0,50,0,16),Text="255",TextColor3=Color3.new(0.86274516582489,0.86274516582489,0.86274516582489),TextSize=14,TextXAlignment=0,}},
 				{84,"Frame",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,BorderSizePixel=0,Name="ArrowFrame",Parent={83},Position=UDim2.new(1,-16,0,0),Size=UDim2.new(0,16,1,0),}},
 				{85,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,BorderSizePixel=0,Font=3,Name="Up",Parent={84},Size=UDim2.new(1,0,0,8),Text="",TextSize=14,}},
 				{86,"Frame",{BackgroundTransparency=1,Name="Arrow",Parent={85},Size=UDim2.new(0,16,0,8),}},
-				{87,"Frame",{BackgroundColor3=Color3.new(0.094, 0.098, 0.122),BorderSizePixel=0,Parent={86},Position=UDim2.new(0,8,0,3),Size=UDim2.new(0,1,0,1),}},
-				{88,"Frame",{BackgroundColor3=Color3.new(0.094, 0.098, 0.122),BorderSizePixel=0,Parent={86},Position=UDim2.new(0,7,0,4),Size=UDim2.new(0,3,0,1),}},
-				{89,"Frame",{BackgroundColor3=Color3.new(0.094, 0.098, 0.122),BorderSizePixel=0,Parent={86},Position=UDim2.new(0,6,0,5),Size=UDim2.new(0,5,0,1),}},
+				{87,"Frame",{BackgroundColor3=Color3.new(0.86274510622025,0.86274510622025,0.86274510622025),BorderSizePixel=0,Parent={86},Position=UDim2.new(0,8,0,3),Size=UDim2.new(0,1,0,1),}},
+				{88,"Frame",{BackgroundColor3=Color3.new(0.86274510622025,0.86274510622025,0.86274510622025),BorderSizePixel=0,Parent={86},Position=UDim2.new(0,7,0,4),Size=UDim2.new(0,3,0,1),}},
+				{89,"Frame",{BackgroundColor3=Color3.new(0.86274510622025,0.86274510622025,0.86274510622025),BorderSizePixel=0,Parent={86},Position=UDim2.new(0,6,0,5),Size=UDim2.new(0,5,0,1),}},
 				{90,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,BorderSizePixel=0,Font=3,Name="Down",Parent={84},Position=UDim2.new(0,0,0,8),Size=UDim2.new(1,0,0,8),Text="",TextSize=14,}},
 				{91,"Frame",{BackgroundTransparency=1,Name="Arrow",Parent={90},Size=UDim2.new(0,16,0,8),}},
-				{92,"Frame",{BackgroundColor3=Color3.new(0.094, 0.098, 0.122),BorderSizePixel=0,Parent={91},Position=UDim2.new(0,8,0,5),Size=UDim2.new(0,1,0,1),}},
-				{93,"Frame",{BackgroundColor3=Color3.new(0.094, 0.098, 0.122),BorderSizePixel=0,Parent={91},Position=UDim2.new(0,7,0,4),Size=UDim2.new(0,3,0,1),}},
-				{94,"Frame",{BackgroundColor3=Color3.new(0.094, 0.098, 0.122),BorderSizePixel=0,Parent={91},Position=UDim2.new(0,6,0,3),Size=UDim2.new(0,5,0,1),}},
+				{92,"Frame",{BackgroundColor3=Color3.new(0.86274510622025,0.86274510622025,0.86274510622025),BorderSizePixel=0,Parent={91},Position=UDim2.new(0,8,0,5),Size=UDim2.new(0,1,0,1),}},
+				{93,"Frame",{BackgroundColor3=Color3.new(0.86274510622025,0.86274510622025,0.86274510622025),BorderSizePixel=0,Parent={91},Position=UDim2.new(0,7,0,4),Size=UDim2.new(0,3,0,1),}},
+				{94,"Frame",{BackgroundColor3=Color3.new(0.86274510622025,0.86274510622025,0.86274510622025),BorderSizePixel=0,Parent={91},Position=UDim2.new(0,6,0,3),Size=UDim2.new(0,5,0,1),}},
 				{95,"TextLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Font=3,Name="Title",Parent={82},Position=UDim2.new(0,-40,0,0),Size=UDim2.new(0,34,1,0),Text="Val:",TextColor3=Color3.new(0.86274516582489,0.86274516582489,0.86274516582489),TextSize=14,TextXAlignment=1,}},
-				{96,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.203, 0.525, 0.996),BorderColor3=Color3.new(0.137, 0.149, 0.176),Font=3,Name="Cancel",Parent={1},Position=UDim2.new(1,-105,1,-28),Size=UDim2.new(0,100,0,25),Text="Cancel",TextColor3=Color3.new(0.86274516582489,0.86274516582489,0.86274516582489),TextSize=14,}},
-				{97,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.203, 0.525, 0.996),BorderColor3=Color3.new(0.137, 0.149, 0.176),Font=3,Name="Ok",Parent={1},Position=UDim2.new(1,-210,1,-28),Size=UDim2.new(0,100,0,25),Text="OK",TextColor3=Color3.new(0.86274516582489,0.86274516582489,0.86274516582489),TextSize=14,}},
-				{98,"ImageLabel",{BackgroundColor3=Color3.new(1,1,1),BorderColor3=Color3.new(0.137, 0.149, 0.176),Image="rbxassetid://1072518502",Name="ColorStrip",Parent={1},Position=UDim2.new(1,-30,0,5),Size=UDim2.new(0,13,0,200),}},
+				{96,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.2352941185236,0.2352941185236,0.2352941185236),BorderColor3=Color3.new(0.21568627655506,0.21568627655506,0.21568627655506),Font=3,Name="Cancel",Parent={1},Position=UDim2.new(1,-105,1,-28),Size=UDim2.new(0,100,0,25),Text="Cancel",TextColor3=Color3.new(0.86274516582489,0.86274516582489,0.86274516582489),TextSize=14,}},
+				{97,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.2352941185236,0.2352941185236,0.2352941185236),BorderColor3=Color3.new(0.21568627655506,0.21568627655506,0.21568627655506),Font=3,Name="Ok",Parent={1},Position=UDim2.new(1,-210,1,-28),Size=UDim2.new(0,100,0,25),Text="OK",TextColor3=Color3.new(0.86274516582489,0.86274516582489,0.86274516582489),TextSize=14,}},
+				{98,"ImageLabel",{BackgroundColor3=Color3.new(1,1,1),BorderColor3=Color3.new(0.21568627655506,0.21568627655506,0.21568627655506),Image="rbxassetid://1072518502",Name="ColorStrip",Parent={1},Position=UDim2.new(1,-30,0,5),Size=UDim2.new(0,13,0,200),}},
 				{99,"Frame",{BackgroundColor3=Color3.new(0.3137255012989,0.3137255012989,0.3137255012989),BackgroundTransparency=1,BorderSizePixel=0,Name="ArrowFrame",Parent={1},Position=UDim2.new(1,-16,0,1),Size=UDim2.new(0,5,0,208),}},
 				{100,"Frame",{BackgroundTransparency=1,Name="Arrow",Parent={99},Position=UDim2.new(0,-2,0,-4),Size=UDim2.new(0,8,0,16),}},
 				{101,"Frame",{BackgroundColor3=Color3.new(0,0,0),BorderSizePixel=0,Parent={100},Position=UDim2.new(0,2,0,8),Size=UDim2.new(0,1,0,1),}},
@@ -8581,87 +8580,14 @@ local function main()
 			local greenInput = pickerFrame.Green.Input
 			local blueInput = pickerFrame.Blue.Input
 
-			local user = cloneref(game:GetService("UserInputService"))
-			local mouse = cloneref(game:GetService("Players")).LocalPlayer:GetMouse()
+			local user = cloneref(game["Run Service"].Parent:GetService("UserInputService"))
+			local mouse = cloneref(game["Run Service"].Parent:GetService("Players")).LocalPlayer:GetMouse()
 
 			local hue,sat,val = 0,0,1
 			local red,green,blue = 1,1,1
 			local chosenColor = Color3.new(0,0,0)
 
-local basicColors = {
-    Color3.new(0, 0, 0),                                  -- Black
-    Color3.new(0.45, 0.15, 0.15),                         -- Muted dark red
-    Color3.new(0.1, 0.3, 0.1),                            -- Muted dark green
-    Color3.new(0.45, 0.3, 0.2),                           -- Brownish dark orange
-    Color3.new(0.1, 0.5, 0.15),                           -- Slightly brighter dark green
-    Color3.new(0.45, 0.45, 0.2),                          -- Olive muted yellow
-    Color3.new(0.1, 0.6, 0.3),                            -- Muted green
-    Color3.new(0.45, 0.6, 0.2),                           -- Muted lime green
-    Color3.new(0.1, 0.1, 0.45),                           -- Muted dark blue
-    Color3.new(0.45, 0.1, 0.45),                          -- Muted purple
-    Color3.new(0.1, 0.3, 0.45),                           -- Muted blue-gray
-    Color3.new(0.45, 0.3, 0.45),                          -- Muted mauve
-    Color3.new(0.1, 0.5, 0.45),                           -- Muted teal
-    Color3.new(0.45, 0.45, 0.45),                         -- Medium gray
-    Color3.new(0.1, 0.6, 0.45),                           -- Muted cyan-green
-    Color3.new(0.45, 0.6, 0.45),                          -- Muted light gray-green
-    Color3.new(0.1, 0.1, 0.6),                            -- Muted deep blue
-    Color3.new(0.45, 0.1, 0.6),                           -- Muted violet
-    Color3.new(0.1, 0.3, 0.6),                            -- Muted blue
-    Color3.new(0.45, 0.3, 0.6),                           -- Muted lavender
-    Color3.new(0.1, 0.5, 0.6),                            -- Muted sky blue
-    Color3.new(0.45, 0.45, 0.6),                          -- Muted periwinkle
-    Color3.new(0.1, 0.6, 0.6),                            -- Muted cyan
-    Color3.new(0.45, 0.6, 0.6),                           -- Muted light cyan
-    Color3.new(0.3, 0.1, 0.1),                            -- Dark muted red-brown
-    Color3.new(0.6, 0.15, 0.15),                          -- Medium muted red
-    Color3.new(0.3, 0.3, 0.1),                            -- Muted olive
-    Color3.new(0.6, 0.3, 0.15),                           -- Muted brown-orange
-    Color3.new(0.3, 0.5, 0.1),                            -- Muted green-yellow
-    Color3.new(0.6, 0.55, 0.15),                          -- Muted yellow-orange
-    Color3.new(0.3, 0.6, 0.15),                           -- Muted lime
-    Color3.new(0.6, 0.6, 0.15),                           -- Muted yellow-green
-    Color3.new(0.3, 0.1, 0.45),                           -- Muted purple-blue
-    Color3.new(0.6, 0.15, 0.5),                           -- Muted magenta
-    Color3.new(0.3, 0.3, 0.45),                           -- Muted blue-gray
-    Color3.new(0.6, 0.3, 0.45),                           -- Muted pink-purple
-    Color3.new(0.3, 0.5, 0.45),                           -- Muted teal-blue
-    Color3.new(0.6, 0.55, 0.45),                          -- Muted light pink
-    Color3.new(0.3, 0.6, 0.45),                           -- Muted aqua
-    Color3.new(0.6, 0.6, 0.45),                           -- Muted cream
-    Color3.new(0.3, 0.1, 0.6),                            -- Muted violet-blue
-    Color3.new(0.6, 0.15, 0.6),                           -- Muted purple-magenta
-    Color3.new(0.3, 0.3, 0.6),                            -- Muted indigo
-    Color3.new(0.6, 0.3, 0.6),                            -- Muted violet-lilac
-    Color3.new(0.3, 0.5, 0.6),                            -- Muted blue-cyan
-    Color3.new(0.6, 0.55, 0.6),                           -- Muted lavender-gray
-    Color3.new(0.3, 0.6, 0.6),                            -- Muted cyan-gray
-    Color3.new(0.6, 0.6, 0.6),                            -- Light gray
-    Color3.new(0.6, 0.1, 0.1),                            -- Medium muted red
-    Color3.new(1, 0.15, 0.15),                            -- Bright red (accent)
-    Color3.new(0.6, 0.3, 0.1),                            -- Muted gold
-    Color3.new(1, 0.3, 0.15),                             -- Bright orange (accent)
-    Color3.new(0.6, 0.6, 0.1),                            -- Muted yellow
-    Color3.new(1, 0.55, 0.15),                            -- Bright yellow-orange
-    Color3.new(0.6, 1, 0.15),                             -- Bright lime green
-    Color3.new(1, 1, 0.15),                               -- Bright yellow
-    Color3.new(0.3, 0.1, 0.45),                           -- Muted purple
-    Color3.new(1, 0.15, 0.45),                            -- Bright pink
-    Color3.new(0.3, 0.3, 0.6),                            -- Muted blue
-    Color3.new(1, 0.3, 0.6),                              -- Bright magenta
-    Color3.new(0.3, 0.6, 0.6),                            -- Muted cyan
-    Color3.new(1, 0.6, 0.6),                              -- Soft pink
-    Color3.new(0.3, 1, 0.6),                              -- Aqua green
-    Color3.new(1, 1, 0.6),                                -- Pale yellow
-    Color3.new(0.3, 0.1, 0.6),                            -- Muted violet
-    Color3.new(1, 0.15, 0.6),                             -- Bright violet-pink
-    Color3.new(0.3, 0.3, 1),                              -- Bright blue
-    Color3.new(1, 0.3, 1),                                -- Bright magenta
-    Color3.new(0.3, 0.6, 1),                              -- Bright cyan-blue
-    Color3.new(1, 0.6, 1),                                -- Soft pink-purple
-    Color3.new(0.3, 1, 1),                                -- Bright cyan
-    Color3.new(1, 1, 1),                                  -- White
-}
+			local basicColors = {Color3.new(0,0,0),Color3.new(0.66666668653488,0,0),Color3.new(0,0.33333334326744,0),Color3.new(0.66666668653488,0.33333334326744,0),Color3.new(0,0.66666668653488,0),Color3.new(0.66666668653488,0.66666668653488,0),Color3.new(0,1,0),Color3.new(0.66666668653488,1,0),Color3.new(0,0,0.49803924560547),Color3.new(0.66666668653488,0,0.49803924560547),Color3.new(0,0.33333334326744,0.49803924560547),Color3.new(0.66666668653488,0.33333334326744,0.49803924560547),Color3.new(0,0.66666668653488,0.49803924560547),Color3.new(0.66666668653488,0.66666668653488,0.49803924560547),Color3.new(0,1,0.49803924560547),Color3.new(0.66666668653488,1,0.49803924560547),Color3.new(0,0,1),Color3.new(0.66666668653488,0,1),Color3.new(0,0.33333334326744,1),Color3.new(0.66666668653488,0.33333334326744,1),Color3.new(0,0.66666668653488,1),Color3.new(0.66666668653488,0.66666668653488,1),Color3.new(0,1,1),Color3.new(0.66666668653488,1,1),Color3.new(0.33333334326744,0,0),Color3.new(1,0,0),Color3.new(0.33333334326744,0.33333334326744,0),Color3.new(1,0.33333334326744,0),Color3.new(0.33333334326744,0.66666668653488,0),Color3.new(1,0.66666668653488,0),Color3.new(0.33333334326744,1,0),Color3.new(1,1,0),Color3.new(0.33333334326744,0,0.49803924560547),Color3.new(1,0,0.49803924560547),Color3.new(0.33333334326744,0.33333334326744,0.49803924560547),Color3.new(1,0.33333334326744,0.49803924560547),Color3.new(0.33333334326744,0.66666668653488,0.49803924560547),Color3.new(1,0.66666668653488,0.49803924560547),Color3.new(0.33333334326744,1,0.49803924560547),Color3.new(1,1,0.49803924560547),Color3.new(0.33333334326744,0,1),Color3.new(1,0,1),Color3.new(0.33333334326744,0.33333334326744,1),Color3.new(1,0.33333334326744,1),Color3.new(0.33333334326744,0.66666668653488,1),Color3.new(1,0.66666668653488,1),Color3.new(0.33333334326744,1,1),Color3.new(1,1,1)}
 			local customColors = {}
 
 			local function updateColor(noupdate)
@@ -8990,20 +8916,20 @@ local basicColors = {
 			newMt.OnPreview = Lib.Signal.new()
 
 			local guiContents = create({
-				{1,"Frame",{BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BorderSizePixel=0,ClipsDescendants=true,Name="Content",Position=UDim2.new(0,0,0,20),Size=UDim2.new(1,0,1,-20),}},
-				{2,"Frame",{BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BorderColor3=Color3.new(0.2, 0.22, 0.25),Name="Time",Parent={1},Position=UDim2.new(0,40,0,210),Size=UDim2.new(0,60,0,20),}},
-				{3,"TextBox",{BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BackgroundTransparency=1,BorderColor3=Color3.new(0.2, 0.22, 0.25),ClipsDescendants=true,Font=3,Name="Input",Parent={2},Position=UDim2.new(0,2,0,0),Size=UDim2.new(0,58,0,20),Text="0",TextColor3=Color3.new(0.86274516582489,0.86274516582489,0.86274516582489),TextSize=14,TextXAlignment=0,}},
+				{1,"Frame",{BackgroundColor3=Color3.new(0.17647059261799,0.17647059261799,0.17647059261799),BorderSizePixel=0,ClipsDescendants=true,Name="Content",Position=UDim2.new(0,0,0,20),Size=UDim2.new(1,0,1,-20),}},
+				{2,"Frame",{BackgroundColor3=Color3.new(0.14901961386204,0.14901961386204,0.14901961386204),BorderColor3=Color3.new(0.12549020349979,0.12549020349979,0.12549020349979),Name="Time",Parent={1},Position=UDim2.new(0,40,0,210),Size=UDim2.new(0,60,0,20),}},
+				{3,"TextBox",{BackgroundColor3=Color3.new(0.25098040699959,0.25098040699959,0.25098040699959),BackgroundTransparency=1,BorderColor3=Color3.new(0.37647062540054,0.37647062540054,0.37647062540054),ClipsDescendants=true,Font=3,Name="Input",Parent={2},Position=UDim2.new(0,2,0,0),Size=UDim2.new(0,58,0,20),Text="0",TextColor3=Color3.new(0.86274516582489,0.86274516582489,0.86274516582489),TextSize=14,TextXAlignment=0,}},
 				{4,"TextLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Font=3,Name="Title",Parent={2},Position=UDim2.new(0,-40,0,0),Size=UDim2.new(0,34,1,0),Text="Time",TextColor3=Color3.new(0.86274516582489,0.86274516582489,0.86274516582489),TextSize=14,TextXAlignment=1,}},
-				{5,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.203, 0.525, 0.996),BorderColor3=Color3.new(0.137, 0.149, 0.176),Font=3,Name="Close",Parent={1},Position=UDim2.new(1,-90,0,210),Size=UDim2.new(0,80,0,20),Text="Close",TextColor3=Color3.new(0.86274516582489,0.86274516582489,0.86274516582489),TextSize=14,}},
-				{6,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.203, 0.525, 0.996),BorderColor3=Color3.new(0.137, 0.149, 0.176),Font=3,Name="Reset",Parent={1},Position=UDim2.new(1,-180,0,210),Size=UDim2.new(0,80,0,20),Text="Reset",TextColor3=Color3.new(0.86274516582489,0.86274516582489,0.86274516582489),TextSize=14,}},
-				{7,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.203, 0.525, 0.996),BorderColor3=Color3.new(0.137, 0.149, 0.176),Font=3,Name="Delete",Parent={1},Position=UDim2.new(0,380,0,210),Size=UDim2.new(0,80,0,20),Text="Delete",TextColor3=Color3.new(0.86274516582489,0.86274516582489,0.86274516582489),TextSize=14,}},
-				{8,"Frame",{BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BorderColor3=Color3.new(0.137, 0.149, 0.176),Name="NumberLineOutlines",Parent={1},Position=UDim2.new(0,10,0,20),Size=UDim2.new(1,-20,0,170),}},
-				{9,"Frame",{BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BackgroundTransparency=1,BorderColor3=Color3.new(0.2, 0.22, 0.25),Name="NumberLine",Parent={1},Position=UDim2.new(0,10,0,20),Size=UDim2.new(1,-20,0,170),}},
-				{10,"Frame",{BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BorderColor3=Color3.new(0.2, 0.22, 0.25),Name="Value",Parent={1},Position=UDim2.new(0,170,0,210),Size=UDim2.new(0,60,0,20),}},
+				{5,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.2352941185236,0.2352941185236,0.2352941185236),BorderColor3=Color3.new(0.21568627655506,0.21568627655506,0.21568627655506),Font=3,Name="Close",Parent={1},Position=UDim2.new(1,-90,0,210),Size=UDim2.new(0,80,0,20),Text="Close",TextColor3=Color3.new(0.86274516582489,0.86274516582489,0.86274516582489),TextSize=14,}},
+				{6,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.2352941185236,0.2352941185236,0.2352941185236),BorderColor3=Color3.new(0.21568627655506,0.21568627655506,0.21568627655506),Font=3,Name="Reset",Parent={1},Position=UDim2.new(1,-180,0,210),Size=UDim2.new(0,80,0,20),Text="Reset",TextColor3=Color3.new(0.86274516582489,0.86274516582489,0.86274516582489),TextSize=14,}},
+				{7,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.2352941185236,0.2352941185236,0.2352941185236),BorderColor3=Color3.new(0.21568627655506,0.21568627655506,0.21568627655506),Font=3,Name="Delete",Parent={1},Position=UDim2.new(0,380,0,210),Size=UDim2.new(0,80,0,20),Text="Delete",TextColor3=Color3.new(0.86274516582489,0.86274516582489,0.86274516582489),TextSize=14,}},
+				{8,"Frame",{BackgroundColor3=Color3.new(0.17647059261799,0.17647059261799,0.17647059261799),BorderColor3=Color3.new(0.21568627655506,0.21568627655506,0.21568627655506),Name="NumberLineOutlines",Parent={1},Position=UDim2.new(0,10,0,20),Size=UDim2.new(1,-20,0,170),}},
+				{9,"Frame",{BackgroundColor3=Color3.new(0.25098040699959,0.25098040699959,0.25098040699959),BackgroundTransparency=1,BorderColor3=Color3.new(0.37647062540054,0.37647062540054,0.37647062540054),Name="NumberLine",Parent={1},Position=UDim2.new(0,10,0,20),Size=UDim2.new(1,-20,0,170),}},
+				{10,"Frame",{BackgroundColor3=Color3.new(0.14901961386204,0.14901961386204,0.14901961386204),BorderColor3=Color3.new(0.12549020349979,0.12549020349979,0.12549020349979),Name="Value",Parent={1},Position=UDim2.new(0,170,0,210),Size=UDim2.new(0,60,0,20),}},
 				{11,"TextLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Font=3,Name="Title",Parent={10},Position=UDim2.new(0,-40,0,0),Size=UDim2.new(0,34,1,0),Text="Value",TextColor3=Color3.new(0.86274516582489,0.86274516582489,0.86274516582489),TextSize=14,TextXAlignment=1,}},
-				{12,"TextBox",{BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BackgroundTransparency=1,BorderColor3=Color3.new(0.2, 0.22, 0.25),ClipsDescendants=true,Font=3,Name="Input",Parent={10},Position=UDim2.new(0,2,0,0),Size=UDim2.new(0,58,0,20),Text="0",TextColor3=Color3.new(0.86274516582489,0.86274516582489,0.86274516582489),TextSize=14,TextXAlignment=0,}},
-				{13,"Frame",{BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BorderColor3=Color3.new(0.2, 0.22, 0.25),Name="Envelope",Parent={1},Position=UDim2.new(0,300,0,210),Size=UDim2.new(0,60,0,20),}},
-				{14,"TextBox",{BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BackgroundTransparency=1,BorderColor3=Color3.new(0.2, 0.22, 0.25),ClipsDescendants=true,Font=3,Name="Input",Parent={13},Position=UDim2.new(0,2,0,0),Size=UDim2.new(0,58,0,20),Text="0",TextColor3=Color3.new(0.86274516582489,0.86274516582489,0.86274516582489),TextSize=14,TextXAlignment=0,}},
+				{12,"TextBox",{BackgroundColor3=Color3.new(0.25098040699959,0.25098040699959,0.25098040699959),BackgroundTransparency=1,BorderColor3=Color3.new(0.37647062540054,0.37647062540054,0.37647062540054),ClipsDescendants=true,Font=3,Name="Input",Parent={10},Position=UDim2.new(0,2,0,0),Size=UDim2.new(0,58,0,20),Text="0",TextColor3=Color3.new(0.86274516582489,0.86274516582489,0.86274516582489),TextSize=14,TextXAlignment=0,}},
+				{13,"Frame",{BackgroundColor3=Color3.new(0.14901961386204,0.14901961386204,0.14901961386204),BorderColor3=Color3.new(0.12549020349979,0.12549020349979,0.12549020349979),Name="Envelope",Parent={1},Position=UDim2.new(0,300,0,210),Size=UDim2.new(0,60,0,20),}},
+				{14,"TextBox",{BackgroundColor3=Color3.new(0.25098040699959,0.25098040699959,0.25098040699959),BackgroundTransparency=1,BorderColor3=Color3.new(0.37647062540054,0.37647062540054,0.37647062540054),ClipsDescendants=true,Font=3,Name="Input",Parent={13},Position=UDim2.new(0,2,0,0),Size=UDim2.new(0,58,0,20),Text="0",TextColor3=Color3.new(0.86274516582489,0.86274516582489,0.86274516582489),TextSize=14,TextXAlignment=0,}},
 				{15,"TextLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Font=3,Name="Title",Parent={13},Position=UDim2.new(0,-40,0,0),Size=UDim2.new(0,34,1,0),Text="Envelope",TextColor3=Color3.new(0.86274516582489,0.86274516582489,0.86274516582489),TextSize=14,TextXAlignment=1,}},
 			})
 			local window = Lib.Window.new()
@@ -9038,8 +8964,8 @@ local basicColors = {
 			local currentPoint = nil
 			local resetSequence = nil
 
-			local user = cloneref(game:GetService("UserInputService"))
-			local mouse = cloneref(game:GetService("Players")).LocalPlayer:GetMouse()
+			local user = cloneref(game["Run Service"].Parent:GetService("UserInputService"))
+			local mouse = cloneref(game["Run Service"].Parent:GetService("Players")).LocalPlayer:GetMouse()
 
 			for i = 2,10 do
 				local newLine = Instance.new("Frame")
@@ -9467,190 +9393,27 @@ local basicColors = {
 			newMt.OnPickColor = Lib.Signal.new()
 
 			local guiContents = create({
-    {1, "Frame", {
-        BackgroundColor3 = Color3.fromRGB(35, 38, 45),  -- #23262D
-        BorderSizePixel = 0,
-        ClipsDescendants = true,
-        Name = "Content",
-        Position = UDim2.new(0, 0, 0, 20),
-        Size = UDim2.new(1, 0, 1, -20),
-    }},
-    {2, "Frame", {
-        BackgroundColor3 = Color3.fromRGB(35, 38, 45), -- same as above for consistency
-        BorderColor3 = Color3.fromRGB(50, 55, 63),     -- #32373F
-        Name = "ColorLine",
-        Parent = {1},
-        Position = UDim2.new(0, 10, 0, 5),
-        Size = UDim2.new(1, -20, 0, 70),
-    }},
-    {3, "Frame", {
-        BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-        BorderSizePixel = 0,
-        Name = "Gradient",
-        Parent = {2},
-        Size = UDim2.new(1, 0, 1, 0),
-    }},
-    {4, "UIGradient", {Parent = {3}}},
-    {5, "Frame", {
-        BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-        BackgroundTransparency = 1,
-        BorderSizePixel = 0,
-        Name = "Arrows",
-        Parent = {1},
-        Position = UDim2.new(0, 1, 0, 73),
-        Size = UDim2.new(1, -2, 0, 16),
-    }},
-    {6, "Frame", {
-        BackgroundColor3 = Color3.fromRGB(0, 0, 0),
-        BackgroundTransparency = 0.5,
-        BorderSizePixel = 0,
-        Name = "Cursor",
-        Parent = {1},
-        Position = UDim2.new(0, 10, 0, 0),
-        Size = UDim2.new(0, 1, 0, 80),
-    }},
-    {7, "Frame", {
-        BackgroundColor3 = Color3.fromRGB(35, 38, 45),
-        BorderColor3 = Color3.fromRGB(58, 63, 69),      -- #3A3F45
-        Name = "Time",
-        Parent = {1},
-        Position = UDim2.new(0, 40, 0, 95),
-        Size = UDim2.new(0, 100, 0, 20),
-    }},
-    {8, "TextBox", {
-        BackgroundColor3 = Color3.fromRGB(35, 38, 45),
-        BackgroundTransparency = 1,
-        BorderColor3 = Color3.fromRGB(58, 63, 69),
-        ClipsDescendants = true,
-        Font = Enum.Font.SourceSans,  -- Roblux Dev Dashboard uses SourceSans or Roboto
-        Name = "Input",
-        Parent = {7},
-        Position = UDim2.new(0, 2, 0, 0),
-        Size = UDim2.new(0, 98, 0, 20),
-        Text = "0",
-        TextColor3 = Color3.fromRGB(220, 220, 220),    -- Light gray text
-        TextSize = 14,
-        TextXAlignment = Enum.TextXAlignment.Left,
-    }},
-    {9, "TextLabel", {
-        BackgroundColor3 = Color3.new(1, 1, 1),
-        BackgroundTransparency = 1,
-        Font = Enum.Font.SourceSans,
-        Name = "Title",
-        Parent = {7},
-        Position = UDim2.new(0, -40, 0, 0),
-        Size = UDim2.new(0, 34, 1, 0),
-        Text = "Time",
-        TextColor3 = Color3.fromRGB(220, 220, 220),
-        TextSize = 14,
-        TextXAlignment = Enum.TextXAlignment.Right,
-    }},
-    {10, "Frame", {
-        BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-        BorderColor3 = Color3.fromRGB(35, 38, 45),
-        Name = "ColorBox",
-        Parent = {1},
-        Position = UDim2.new(0, 220, 0, 95),
-        Size = UDim2.new(0, 20, 0, 20),
-    }},
-    {11, "TextLabel", {
-        BackgroundColor3 = Color3.new(1, 1, 1),
-        BackgroundTransparency = 1,
-        Font = Enum.Font.SourceSans,
-        Name = "Title",
-        Parent = {10},
-        Position = UDim2.new(0, -40, 0, 0),
-        Size = UDim2.new(0, 34, 1, 0),
-        Text = "Color",
-        TextColor3 = Color3.fromRGB(220, 220, 220),
-        TextSize = 14,
-        TextXAlignment = Enum.TextXAlignment.Right,
-    }},
-    {12, "TextButton", {
-        AutoButtonColor = false,
-        BackgroundColor3 = Color3.fromRGB(52, 134, 254),  -- #3486FE (roblox blue)
-        BorderColor3 = Color3.fromRGB(35, 38, 45),
-        BorderSizePixel = 0,
-        Font = Enum.Font.SourceSans,
-        Name = "Close",
-        Parent = {1},
-        Position = UDim2.new(1, -90, 0, 95),
-        Size = UDim2.new(0, 80, 0, 20),
-        Text = "Close",
-        TextColor3 = Color3.fromRGB(220, 220, 220),
-        TextSize = 14,
-    }},
-    {13, "TextButton", {
-        AutoButtonColor = false,
-        BackgroundColor3 = Color3.fromRGB(52, 134, 254),
-        BorderColor3 = Color3.fromRGB(35, 38, 45),
-        BorderSizePixel = 0,
-        Font = Enum.Font.SourceSans,
-        Name = "Reset",
-        Parent = {1},
-        Position = UDim2.new(1, -180, 0, 95),
-        Size = UDim2.new(0, 80, 0, 20),
-        Text = "Reset",
-        TextColor3 = Color3.fromRGB(220, 220, 220),
-        TextSize = 14,
-    }},
-    {14, "TextButton", {
-        AutoButtonColor = false,
-        BackgroundColor3 = Color3.fromRGB(52, 134, 254),
-        BorderColor3 = Color3.fromRGB(35, 38, 45),
-        BorderSizePixel = 0,
-        Font = Enum.Font.SourceSans,
-        Name = "Delete",
-        Parent = {1},
-        Position = UDim2.new(0, 280, 0, 95),
-        Size = UDim2.new(0, 80, 0, 20),
-        Text = "Delete",
-        TextColor3 = Color3.fromRGB(220, 220, 220),
-        TextSize = 14,
-    }},
-    {15, "Frame", {
-        BackgroundTransparency = 1,
-        Name = "Arrow",
-        Parent = {1},
-        Size = UDim2.new(0, 16, 0, 16),
-        Visible = false,
-    }},
-    {16, "Frame", {
-        BackgroundColor3 = Color3.fromRGB(24, 25, 31), -- #18191F very dark gray
-        BorderSizePixel = 0,
-        Parent = {15},
-        Position = UDim2.new(0, 8, 0, 3),
-        Size = UDim2.new(0, 1, 0, 2),
-    }},
-    {17, "Frame", {
-        BackgroundColor3 = Color3.fromRGB(24, 25, 31),
-        BorderSizePixel = 0,
-        Parent = {15},
-        Position = UDim2.new(0, 7, 0, 5),
-        Size = UDim2.new(0, 3, 0, 2),
-    }},
-    {18, "Frame", {
-        BackgroundColor3 = Color3.fromRGB(24, 25, 31),
-        BorderSizePixel = 0,
-        Parent = {15},
-        Position = UDim2.new(0, 6, 0, 7),
-        Size = UDim2.new(0, 5, 0, 2),
-    }},
-    {19, "Frame", {
-        BackgroundColor3 = Color3.fromRGB(24, 25, 31),
-        BorderSizePixel = 0,
-        Parent = {15},
-        Position = UDim2.new(0, 5, 0, 9),
-        Size = UDim2.new(0, 7, 0, 2),
-    }},
-    {20, "Frame", {
-        BackgroundColor3 = Color3.fromRGB(24, 25, 31),
-        BorderSizePixel = 0,
-        Parent = {15},
-        Position = UDim2.new(0, 4, 0, 11),
-        Size = UDim2.new(0, 9, 0, 2),
-    }},
-})
+				{1,"Frame",{BackgroundColor3=Color3.new(0.17647059261799,0.17647059261799,0.17647059261799),BorderSizePixel=0,ClipsDescendants=true,Name="Content",Position=UDim2.new(0,0,0,20),Size=UDim2.new(1,0,1,-20),}},
+				{2,"Frame",{BackgroundColor3=Color3.new(0.17647059261799,0.17647059261799,0.17647059261799),BorderColor3=Color3.new(0.21568627655506,0.21568627655506,0.21568627655506),Name="ColorLine",Parent={1},Position=UDim2.new(0,10,0,5),Size=UDim2.new(1,-20,0,70),}},
+				{3,"Frame",{BackgroundColor3=Color3.new(1,1,1),BorderSizePixel=0,Name="Gradient",Parent={2},Size=UDim2.new(1,0,1,0),}},
+				{4,"UIGradient",{Parent={3},}},
+				{5,"Frame",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,BorderSizePixel=0,Name="Arrows",Parent={1},Position=UDim2.new(0,1,0,73),Size=UDim2.new(1,-2,0,16),}},
+				{6,"Frame",{BackgroundColor3=Color3.new(0,0,0),BackgroundTransparency=0.5,BorderSizePixel=0,Name="Cursor",Parent={1},Position=UDim2.new(0,10,0,0),Size=UDim2.new(0,1,0,80),}},
+				{7,"Frame",{BackgroundColor3=Color3.new(0.14901961386204,0.14901961386204,0.14901961386204),BorderColor3=Color3.new(0.12549020349979,0.12549020349979,0.12549020349979),Name="Time",Parent={1},Position=UDim2.new(0,40,0,95),Size=UDim2.new(0,100,0,20),}},
+				{8,"TextBox",{BackgroundColor3=Color3.new(0.25098040699959,0.25098040699959,0.25098040699959),BackgroundTransparency=1,BorderColor3=Color3.new(0.37647062540054,0.37647062540054,0.37647062540054),ClipsDescendants=true,Font=3,Name="Input",Parent={7},Position=UDim2.new(0,2,0,0),Size=UDim2.new(0,98,0,20),Text="0",TextColor3=Color3.new(0.86274516582489,0.86274516582489,0.86274516582489),TextSize=14,TextXAlignment=0,}},
+				{9,"TextLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Font=3,Name="Title",Parent={7},Position=UDim2.new(0,-40,0,0),Size=UDim2.new(0,34,1,0),Text="Time",TextColor3=Color3.new(0.86274516582489,0.86274516582489,0.86274516582489),TextSize=14,TextXAlignment=1,}},
+				{10,"Frame",{BackgroundColor3=Color3.new(1,1,1),BorderColor3=Color3.new(0.21568627655506,0.21568627655506,0.21568627655506),Name="ColorBox",Parent={1},Position=UDim2.new(0,220,0,95),Size=UDim2.new(0,20,0,20),}},
+				{11,"TextLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Font=3,Name="Title",Parent={10},Position=UDim2.new(0,-40,0,0),Size=UDim2.new(0,34,1,0),Text="Color",TextColor3=Color3.new(0.86274516582489,0.86274516582489,0.86274516582489),TextSize=14,TextXAlignment=1,}},
+				{12,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.2352941185236,0.2352941185236,0.2352941185236),BorderColor3=Color3.new(0.21568627655506,0.21568627655506,0.21568627655506),BorderSizePixel=0,Font=3,Name="Close",Parent={1},Position=UDim2.new(1,-90,0,95),Size=UDim2.new(0,80,0,20),Text="Close",TextColor3=Color3.new(0.86274516582489,0.86274516582489,0.86274516582489),TextSize=14,}},
+				{13,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.2352941185236,0.2352941185236,0.2352941185236),BorderColor3=Color3.new(0.21568627655506,0.21568627655506,0.21568627655506),BorderSizePixel=0,Font=3,Name="Reset",Parent={1},Position=UDim2.new(1,-180,0,95),Size=UDim2.new(0,80,0,20),Text="Reset",TextColor3=Color3.new(0.86274516582489,0.86274516582489,0.86274516582489),TextSize=14,}},
+				{14,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.2352941185236,0.2352941185236,0.2352941185236),BorderColor3=Color3.new(0.21568627655506,0.21568627655506,0.21568627655506),BorderSizePixel=0,Font=3,Name="Delete",Parent={1},Position=UDim2.new(0,280,0,95),Size=UDim2.new(0,80,0,20),Text="Delete",TextColor3=Color3.new(0.86274516582489,0.86274516582489,0.86274516582489),TextSize=14,}},
+				{15,"Frame",{BackgroundTransparency=1,Name="Arrow",Parent={1},Size=UDim2.new(0,16,0,16),Visible=false,}},
+				{16,"Frame",{BackgroundColor3=Color3.new(0.86274510622025,0.86274510622025,0.86274510622025),BorderSizePixel=0,Parent={15},Position=UDim2.new(0,8,0,3),Size=UDim2.new(0,1,0,2),}},
+				{17,"Frame",{BackgroundColor3=Color3.new(0.86274510622025,0.86274510622025,0.86274510622025),BorderSizePixel=0,Parent={15},Position=UDim2.new(0,7,0,5),Size=UDim2.new(0,3,0,2),}},
+				{18,"Frame",{BackgroundColor3=Color3.new(0.86274510622025,0.86274510622025,0.86274510622025),BorderSizePixel=0,Parent={15},Position=UDim2.new(0,6,0,7),Size=UDim2.new(0,5,0,2),}},
+				{19,"Frame",{BackgroundColor3=Color3.new(0.86274510622025,0.86274510622025,0.86274510622025),BorderSizePixel=0,Parent={15},Position=UDim2.new(0,5,0,9),Size=UDim2.new(0,7,0,2),}},
+				{20,"Frame",{BackgroundColor3=Color3.new(0.86274510622025,0.86274510622025,0.86274510622025),BorderSizePixel=0,Parent={15},Position=UDim2.new(0,4,0,11),Size=UDim2.new(0,9,0,2),}},
+			})
 			local window = Lib.Window.new()
 			window.Resizable = false
 			window:Resize(650,150)
@@ -9676,8 +9439,8 @@ local basicColors = {
 			local closeButton = pickerFrame.Close
 			local topClose = pickerTopBar.Close
 
-			local user = cloneref(game:GetService("UserInputService"))
-			local mouse = cloneref(game:GetService("Players")).LocalPlayer:GetMouse()
+			local user = cloneref(game["Run Service"].Parent:GetService("UserInputService"))
+			local mouse = cloneref(game["Run Service"].Parent:GetService("Players")).LocalPlayer:GetMouse()
 
 			local colors = {{Color3.new(1,0,1),0},{Color3.new(0.2,0.9,0.2),0.2},{Color3.new(0.4,0.5,0.9),0.7},{Color3.new(0.6,1,1),1}}
 			local resetSequence = nil
@@ -9943,7 +9706,7 @@ local basicColors = {
 	end)()
 
 	Lib.ViewportTextBox = (function()
-		local textService = cloneref(game:GetService("TextService"))
+		local textService = cloneref(game["Run Service"].Parent:GetService("TextService"))
 
 		local props = {
 			OffsetX = 0,
@@ -10234,9 +9997,9 @@ local basicColors = {
 			label.Parent = f
 			local arrow = create({
 				{1,"Frame",{BackgroundTransparency=1,Name="EnumArrow",Position=UDim2.new(1,-16,0,2),Size=UDim2.new(0,16,0,16),}},
-				{2,"Frame",{BackgroundColor3=Color3.new(0.094, 0.098, 0.122),BorderSizePixel=0,Parent={1},Position=UDim2.new(0,8,0,9),Size=UDim2.new(0,1,0,1),}},
-				{3,"Frame",{BackgroundColor3=Color3.new(0.094, 0.098, 0.122),BorderSizePixel=0,Parent={1},Position=UDim2.new(0,7,0,8),Size=UDim2.new(0,3,0,1),}},
-				{4,"Frame",{BackgroundColor3=Color3.new(0.094, 0.098, 0.122),BorderSizePixel=0,Parent={1},Position=UDim2.new(0,6,0,7),Size=UDim2.new(0,5,0,1),}},
+				{2,"Frame",{BackgroundColor3=Color3.new(0.86274510622025,0.86274510622025,0.86274510622025),BorderSizePixel=0,Parent={1},Position=UDim2.new(0,8,0,9),Size=UDim2.new(0,1,0,1),}},
+				{3,"Frame",{BackgroundColor3=Color3.new(0.86274510622025,0.86274510622025,0.86274510622025),BorderSizePixel=0,Parent={1},Position=UDim2.new(0,7,0,8),Size=UDim2.new(0,3,0,1),}},
+				{4,"Frame",{BackgroundColor3=Color3.new(0.86274510622025,0.86274510622025,0.86274510622025),BorderSizePixel=0,Parent={1},Position=UDim2.new(0,6,0,7),Size=UDim2.new(0,5,0,1),}},
 			})
 			arrow.Parent = f
 
@@ -10385,8 +10148,8 @@ DefaultSettings = (function()
 			ListSelection = rgb(11,90,175),
 			Button = rgb(60,60,60),
 			ButtonHover = rgb(68,68,68),
-			ButtonPress = rgb(24,26,31),
-			Highlight = rgb(44,47,56),
+			ButtonPress = rgb(40,40,40),
+			Highlight = rgb(75,75,75),
 			Text = rgb(255,255,255),
 			PlaceholderText = rgb(100,100,100),
 			Important = rgb(255,0,0),
@@ -10426,7 +10189,7 @@ local Settings = {}
 local Apps = {}
 local env = {}
 local service = setmetatable({},{__index = function(self,name)
-	local serv = cloneref(game:GetService(name))
+	local serv = cloneref(game["Run Service"].Parent:GetService(name))
 	self[name] = serv
 	return serv
 end})
@@ -10664,22 +10427,26 @@ Main = (function()
 	
 	Main.FetchAPI = function()
 		local api,rawAPI
-        repeat task.wait() until Main.Elevated
-
-		if Main.LocalDepsUpToDate() then
-
-				local localAPI = false
-				if localAPI == true then 
+		if Main.Elevated then
+			if Main.LocalDepsUpToDate() then
+				local localAPI = Lib.ReadFile("dex/rbx_api.dat")
+				if localAPI then 
 					rawAPI = localAPI
 				else
 					Main.DepsVersionData[1] = ""
 				end
 			end
-			rawAPI = game:HttpGet("http://setup.roblox.com/version-d0e8cfcd943d4ae2-API-Dump.json")
-
+			rawAPI = rawAPI or game:HttpGet("http://setup.roblox.com/"..Main.RobloxVersion.."-API-Dump.json")
+		else
+			if script:FindFirstChild("API") then
+				rawAPI = require(script.API)
+			else
+				error("NO API EXISTS")
+			end
+		end
 		Main.RawAPI = rawAPI
 		api = service.HttpService:JSONDecode(rawAPI)
-
+		
 		local classes,enums = {},{}
 		local categoryOrder,seenCategories = {},{}
 		
@@ -10692,7 +10459,7 @@ Main = (function()
 			if not pos then return end
 			table.insert(t,pos,item)
 		end
-
+		
 		for _,class in pairs(api.Classes) do
 			local newClass = {}
 			newClass.Name = class.Name
@@ -10742,7 +10509,7 @@ Main = (function()
 			
 			classes[class.Name] = newClass
 		end
-
+		
 		for _,class in pairs(classes) do
 			class.Superclass = classes[class.Superclass]
 		end
@@ -10769,7 +10536,7 @@ Main = (function()
 	        local result = {}
 	
 	        local currentClass = classes[class]
-	        while currentClass do task.wait()
+	        while currentClass do
 	            for _,entry in pairs(currentClass[member]) do
 	                result[#result+1] = entry
 	            end
@@ -10779,7 +10546,7 @@ Main = (function()
 	        table.sort(result,function(a,b) return a.Name < b.Name end)
 	        return result
 		end
-
+		
 		insertAbove(categoryOrder,"Behavior","Tuning")
 		insertAbove(categoryOrder,"Appearance","Data")
 		insertAbove(categoryOrder,"Attachments","Axes")
@@ -10808,102 +10575,117 @@ Main = (function()
 	
 	Main.FetchRMD = function()
 		local rawXML
-		repeat task.wait() until Main.Elevated
-		if Main.LocalDepsUpToDate() then
-				local localRMD = false
-				if localRMD == true then 
+		if Main.Elevated then
+			if Main.LocalDepsUpToDate() then
+				local localRMD = Lib.ReadFile("dex/rbx_rmd.dat")
+				if localRMD then 
 					rawXML = localRMD
 				else
 					Main.DepsVersionData[1] = ""
 				end
 			end
-			
-rawXML = rawXML or game:HttpGet("https://raw.githubusercontent.com/CloneTrooper1019/Roblox-Client-Tracker/roblox/ReflectionMetadata.xml")
-
-Main.RawRMD = rawXML
-
-local parsed = Lib.ParseXML(rawXML)
-
-local rootChildren = parsed.children[1].children
-local classList = rootChildren[1].children
-local enumList = rootChildren[2].children
-
-local propertyOrders = {}
-local classes, enums = {}, {}
-
-local function capitalize(str)
-    return str:sub(1,1):upper() .. str:sub(2)
-end
-
-for _, class in pairs(classList) do
-    local className, data = "", {Properties = {}, Functions = {}}
-
-    for _, child in pairs(class.children) do
-        if child.tag == "Properties" then
-            for _, prop in pairs(child.children) do
-                local name = capitalize(prop.attrs.name)
-                data[name] = prop.children[1].text
-            end
-            className = data.Name
-            classes[className] = data
-        elseif child.attrs.class == "ReflectionMetadataProperties" then
-            for _, member in pairs(child.children) do
-                if member.attrs.class == "ReflectionMetadataMember" and member.children[1].tag == "Properties" then
-                    local memberData = {}
-                    for _, prop in pairs(member.children[1].children) do
-                        if prop.attrs then
-                            local name = capitalize(prop.attrs.name)
-                            memberData[name] = prop.children[1].text
-                        end
-                    end
-                    if memberData.PropertyOrder then
-                        propertyOrders[className] = propertyOrders[className] or {}
-                        propertyOrders[className][memberData.Name] = tonumber(memberData.PropertyOrder)
-                    end
-                    classes[className].Properties[memberData.Name] = memberData
-                end
-            end
-        elseif child.attrs.class == "ReflectionMetadataFunctions" then
-            for _, member in pairs(child.children) do
-                if member.attrs.class == "ReflectionMetadataMember" and member.children[1].tag == "Properties" then
-                    local memberData = {}
-                    for _, prop in pairs(member.children[1].children) do
-                        if prop.attrs then
-                            local name = capitalize(prop.attrs.name)
-                            memberData[name] = prop.children[1].text
-                        end
-                    end
-                    classes[className].Functions[memberData.Name] = memberData
-                end
-            end
-        end
-    end
-end
-
-for _, enum in pairs(enumList) do
-    local enumName, data = "", {Items = {}}
-
-    for _, child in pairs(enum.children) do
-        if child.tag == "Properties" then
-            for _, prop in pairs(child.children) do
-                local name = capitalize(prop.attrs.name)
-                data[name] = prop.children[1].text
-            end
-            enumName = data.Name
-            enums[enumName] = data
-        elseif child.attrs.class == "ReflectionMetadataEnumItem" and child.children[1].tag == "Properties" then
-            local itemData = {}
-            for _, prop in pairs(child.children[1].children) do
-                local name = capitalize(prop.attrs.name)
-                itemData[name] = prop.children[1].text
-            end
-            enums[enumName].Items[itemData.Name] = itemData
-        end
-    end
-end
-
-return {Classes = classes, Enums = enums, PropertyOrders = propertyOrders}
-
+			rawXML = rawXML or game:HttpGet("https://raw.githubusercontent.com/CloneTrooper1019/Roblox-Client-Tracker/roblox/ReflectionMetadata.xml")
+		else
+			if script:FindFirstChild("RMD") then
+				rawXML = require(script.RMD)
+			else
+				error("NO RMD EXISTS")
+			end
+		end
+		Main.RawRMD = rawXML
+		local parsed = Lib.ParseXML(rawXML)
+		local classList = parsed.children[1].children[1].children
+		local enumList = parsed.children[1].children[2].children
+		local propertyOrders = {}
+		
+		local classes,enums = {},{}
+		for _,class in pairs(classList) do
+			local className = ""
+			for _,child in pairs(class.children) do
+				if child.tag == "Properties" then
+					local data = {Properties = {}, Functions = {}}
+					local props = child.children
+					for _,prop in pairs(props) do
+						local name = prop.attrs.name
+						name = name:sub(1,1):upper()..name:sub(2)
+						data[name] = prop.children[1].text
+					end
+					className = data.Name
+					classes[className] = data
+				elseif child.attrs.class == "ReflectionMetadataProperties" then
+					local members = child.children
+					for _,member in pairs(members) do
+						if member.attrs.class == "ReflectionMetadataMember" then
+							local data = {}
+							if member.children[1].tag == "Properties" then
+								local props = member.children[1].children
+								for _,prop in pairs(props) do
+									if prop.attrs then
+										local name = prop.attrs.name
+										name = name:sub(1,1):upper()..name:sub(2)
+										data[name] = prop.children[1].text
+									end
+								end
+								if data.PropertyOrder then
+									local orders = propertyOrders[className]
+									if not orders then orders = {} propertyOrders[className] = orders end
+									orders[data.Name] = tonumber(data.PropertyOrder)
+								end
+								classes[className].Properties[data.Name] = data
+							end
+						end
+					end
+				elseif child.attrs.class == "ReflectionMetadataFunctions" then
+					local members = child.children
+					for _,member in pairs(members) do
+						if member.attrs.class == "ReflectionMetadataMember" then
+							local data = {}
+							if member.children[1].tag == "Properties" then
+								local props = member.children[1].children
+								for _,prop in pairs(props) do
+									if prop.attrs then
+										local name = prop.attrs.name
+										name = name:sub(1,1):upper()..name:sub(2)
+										data[name] = prop.children[1].text
+									end
+								end
+								classes[className].Functions[data.Name] = data
+							end
+						end
+					end
+				end
+			end
+		end
+		
+		for _,enum in pairs(enumList) do
+			local enumName = ""
+			for _,child in pairs(enum.children) do
+				if child.tag == "Properties" then
+					local data = {Items = {}}
+					local props = child.children
+					for _,prop in pairs(props) do
+						local name = prop.attrs.name
+						name = name:sub(1,1):upper()..name:sub(2)
+						data[name] = prop.children[1].text
+					end
+					enumName = data.Name
+					enums[enumName] = data
+				elseif child.attrs.class == "ReflectionMetadataEnumItem" then
+					local data = {}
+					if child.children[1].tag == "Properties" then
+						local props = child.children[1].children
+						for _,prop in pairs(props) do
+							local name = prop.attrs.name
+							name = name:sub(1,1):upper()..name:sub(2)
+							data[name] = prop.children[1].text
+						end
+						enums[enumName].Items[data.Name] = data
+					end
+				end
+			end
+		end
+		
+		return {Classes = classes, Enums = enums, PropertyOrders = propertyOrders}
 	end
 
     Main.ShowGui = function(gui)
@@ -10920,15 +10702,15 @@ return {Classes = classes, Enums = enums, PropertyOrders = propertyOrders}
 	Main.CreateIntro = function(initStatus) -- TODO: Must theme and show errors
 		local gui = create({
 			{1,"ScreenGui",{Name="Intro",}},
-			{2,"Frame",{Active=true,BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BorderSizePixel=0,Name="Main",Parent={1},Position=UDim2.new(0.5,-175,0.5,-100),Size=UDim2.new(0,350,0,200),}},
-			{3,"Frame",{BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BorderSizePixel=0,ClipsDescendants=true,Name="Holder",Parent={2},Size=UDim2.new(1,0,1,0),}},
+			{2,"Frame",{Active=true,BackgroundColor3=Color3.new(0.20392157137394, 0.20392157137394, 0.20392157137394),BorderSizePixel=0,Name="Main",Parent={1},Position=UDim2.new(0.5,-175,0.5,-100),Size=UDim2.new(0,350,0,200),}},
+			{3,"Frame",{BackgroundColor3=Color3.new(0.17647059261799,0.17647059261799,0.17647059261799),BorderSizePixel=0,ClipsDescendants=true,Name="Holder",Parent={2},Size=UDim2.new(1,0,1,0),}},
 			{4,"UIGradient",{Parent={3},Rotation=30,Transparency=NumberSequence.new({NumberSequenceKeypoint.new(0,1,0),NumberSequenceKeypoint.new(1,1,0),}),}},
 			{5,"TextLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Font=4,Name="Title",Parent={3},Position=UDim2.new(0,-190,0,15),Size=UDim2.new(0,100,0,50),Text="Dex",TextColor3=Color3.new(1,1,1),TextSize=50,TextTransparency=1,}},
 			{6,"TextLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Font=3,Name="Desc",Parent={3},Position=UDim2.new(0,-230,0,60),Size=UDim2.new(0,180,0,25),Text="Ultimate Debugging Suite",TextColor3=Color3.new(1,1,1),TextSize=18,TextTransparency=1,}},
 			{7,"TextLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Font=3,Name="StatusText",Parent={3},Position=UDim2.new(0,20,0,110),Size=UDim2.new(0,180,0,25),Text="Fetching API",TextColor3=Color3.new(1,1,1),TextSize=14,TextTransparency=1,}},
-			{8,"Frame",{BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BorderSizePixel=0,Name="ProgressBar",Parent={3},Position=UDim2.new(0,110,0,145),Size=UDim2.new(0,0,0,4),}},
+			{8,"Frame",{BackgroundColor3=Color3.new(0.20392157137394, 0.20392157137394, 0.20392157137394),BorderSizePixel=0,Name="ProgressBar",Parent={3},Position=UDim2.new(0,110,0,145),Size=UDim2.new(0,0,0,4),}},
 			{9,"Frame",{BackgroundColor3=Color3.new(0.2392156869173,0.56078433990479,0.86274510622025),BorderSizePixel=0,Name="Bar",Parent={8},Size=UDim2.new(0,0,1,0),}},
-			{10,"ImageLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Image="rbxassetid://2764171053",ImageColor3=Color3.new(0.137, 0.149, 0.176),Parent={8},ScaleType=1,Size=UDim2.new(1,0,1,0),SliceCenter=Rect.new(2,2,254,254),}},
+			{10,"ImageLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Image="rbxassetid://2764171053",ImageColor3=Color3.new(0.17647059261799,0.17647059261799,0.17647059261799),Parent={8},ScaleType=1,Size=UDim2.new(1,0,1,0),SliceCenter=Rect.new(2,2,254,254),}},
 			{11,"TextLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Font=3,Name="Creator",Parent={2},Position=UDim2.new(1,-110,1,-20),Size=UDim2.new(0,105,0,20),Text="Developed by Moon",TextColor3=Color3.new(1,1,1),TextSize=14,TextXAlignment=1,}},
 			{12,"UIGradient",{Parent={11},Transparency=NumberSequence.new({NumberSequenceKeypoint.new(0,1,0),NumberSequenceKeypoint.new(1,1,0),}),}},
 			{13,"TextLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Font=3,Name="Version",Parent={2},Position=UDim2.new(1,-110,1,-35),Size=UDim2.new(0,105,0,20),Text=Main.Version,TextColor3=Color3.new(1,1,1),TextSize=14,TextXAlignment=1,}},
@@ -11158,7 +10940,7 @@ return {Classes = classes, Enums = enums, PropertyOrders = propertyOrders}
 	Main.SetMainGuiOpen = function(val)
 		Main.MainGuiOpen = val
 		
-		Main.MainGui.OpenButton.Text = val and "X" or "Kaden's Explorer"
+		Main.MainGui.OpenButton.Text = val and "X" or "Dex"
 		if val then Main.MainGui.OpenButton.MainFrame.Visible = true end
 		Main.MainGui.OpenButton.MainFrame:TweenSize(val and UDim2.new(0,224,0,200) or UDim2.new(0,0,0,0),Enum.EasingDirection.Out,Enum.EasingStyle.Quad,0.2,true)
 		--Main.MainGui.OpenButton.BackgroundTransparency = val and 0 or (Lib.CheckMouseInGui(Main.MainGui.OpenButton) and 0 or 0.2)
@@ -11185,13 +10967,13 @@ return {Classes = classes, Enums = enums, PropertyOrders = propertyOrders}
 	Main.CreateMainGui = function()
 		local gui = create({
 			{1,"ScreenGui",{IgnoreGuiInset=true,Name="MainMenu",}},
-			{2,"TextButton",{AnchorPoint=Vector2.new(0.5,0),AutoButtonColor=false,BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BorderSizePixel=0,Font=4,Name="OpenButton",Parent={1},Position=UDim2.new(0.5,0,0,2),Size=UDim2.new(0,32,0,32),Text="Dex",TextColor3=Color3.new(1,1,1),TextSize=16,TextTransparency=0.20000000298023,}},
+			{2,"TextButton",{AnchorPoint=Vector2.new(0.5,0),AutoButtonColor=false,BackgroundColor3=Color3.new(0.17647059261799,0.17647059261799,0.17647059261799),BorderSizePixel=0,Font=4,Name="OpenButton",Parent={1},Position=UDim2.new(0.5,0,0,2),Size=UDim2.new(0,32,0,32),Text="Dex",TextColor3=Color3.new(1,1,1),TextSize=16,TextTransparency=0.20000000298023,}},
 			{3,"UICorner",{CornerRadius=UDim.new(0,4),Parent={2},}},
-			{4,"Frame",{AnchorPoint=Vector2.new(0.5,0),BackgroundColor3=Color3.new(0.137, 0.149, 0.176),ClipsDescendants=true,Name="MainFrame",Parent={2},Position=UDim2.new(0.5,0,1,-4),Size=UDim2.new(0,224,0,200),}},
+			{4,"Frame",{AnchorPoint=Vector2.new(0.5,0),BackgroundColor3=Color3.new(0.17647059261799,0.17647059261799,0.17647059261799),ClipsDescendants=true,Name="MainFrame",Parent={2},Position=UDim2.new(0.5,0,1,-4),Size=UDim2.new(0,224,0,200),}},
 			{5,"UICorner",{CornerRadius=UDim.new(0,4),Parent={4},}},
-			{6,"Frame",{BackgroundColor3=Color3.new(0.137, 0.149, 0.176),Name="BottomFrame",Parent={4},Position=UDim2.new(0,0,1,-24),Size=UDim2.new(1,0,0,24),}},
+			{6,"Frame",{BackgroundColor3=Color3.new(0.20392157137394, 0.20392157137394, 0.20392157137394),Name="BottomFrame",Parent={4},Position=UDim2.new(0,0,1,-24),Size=UDim2.new(1,0,0,24),}},
 			{7,"UICorner",{CornerRadius=UDim.new(0,4),Parent={6},}},
-			{8,"Frame",{BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BorderSizePixel=0,Name="CoverFrame",Parent={6},Size=UDim2.new(1,0,0,4),}},
+			{8,"Frame",{BackgroundColor3=Color3.new(0.20392157137394, 0.20392157137394, 0.20392157137394),BorderSizePixel=0,Name="CoverFrame",Parent={6},Size=UDim2.new(1,0,0,4),}},
 			{9,"Frame",{BackgroundColor3=Color3.new(0.137, 0.149, 0.176),BorderSizePixel=0,Name="Line",Parent={8},Position=UDim2.new(0,0,0,-1),Size=UDim2.new(1,0,0,1),}},
 			{10,"TextButton",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Font=3,Name="Settings",Parent={6},Position=UDim2.new(1,-48,0,0),Size=UDim2.new(0,24,1,0),Text="",TextColor3=Color3.new(1,1,1),TextSize=14,}},
 			{11,"ImageLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Image="rbxassetid://6578871732",ImageTransparency=0.20000000298023,Name="Icon",Parent={10},Position=UDim2.new(0,4,0,4),Size=UDim2.new(0,16,0,16),}},
@@ -11201,7 +10983,7 @@ return {Classes = classes, Enums = enums, PropertyOrders = propertyOrders}
 			{15,"Frame",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Name="Container",Parent={14},Position=UDim2.new(0,7,0,8),Size=UDim2.new(1,-14,0,2),}},
 			{16,"UIGridLayout",{CellSize=UDim2.new(0,66,0,74),Parent={15},SortOrder=2,}},
 			{17,"Frame",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Name="App",Parent={1},Size=UDim2.new(0,100,0,100),Visible=false,}},
-			{18,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.203, 0.525, 0.996),BorderSizePixel=0,Font=3,Name="Main",Parent={17},Size=UDim2.new(1,0,0,60),Text="",TextColor3=Color3.new(0,0,0),TextSize=14,}},
+			{18,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.2352941185236,0.2352941185236,0.2352941185236),BorderSizePixel=0,Font=3,Name="Main",Parent={17},Size=UDim2.new(1,0,0,60),Text="",TextColor3=Color3.new(0,0,0),TextSize=14,}},
 			{19,"ImageLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Image="rbxassetid://6579106223",ImageRectSize=Vector2.new(32,32),Name="Icon",Parent={18},Position=UDim2.new(0.5,-16,0,4),ScaleType=4,Size=UDim2.new(0,32,0,32),}},
 			{20,"TextLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,BorderSizePixel=0,Font=3,Name="AppName",Parent={18},Position=UDim2.new(0,2,0,38),Size=UDim2.new(1,-4,1,-40),Text="Explorer",TextColor3=Color3.new(1,1,1),TextSize=14,TextTransparency=0.10000000149012,TextTruncate=1,TextWrapped=true,TextYAlignment=0,}},
 			{21,"Frame",{BackgroundColor3=Color3.new(0,0.66666668653488,1),BorderSizePixel=0,Name="Highlight",Parent={18},Position=UDim2.new(0,0,1,-2),Size=UDim2.new(1,0,0,2),}},
@@ -11274,7 +11056,7 @@ return {Classes = classes, Enums = enums, PropertyOrders = propertyOrders}
 	end
 	
 	Main.Init = function()
-		Main.Elevated = pcall(function() local a = cloneref(game:GetService("CoreGui")):GetFullName() end)
+		Main.Elevated = pcall(function() local a = cloneref(game["Run Service"].Parent:GetService("CoreGui")):GetFullName() end)
 		Main.InitEnv()
 		Main.LoadSettings()
 		Main.SetupFilesystem()
@@ -11316,14 +11098,22 @@ return {Classes = classes, Enums = enums, PropertyOrders = propertyOrders}
 			Main.RobloxVersion = Main.RobloxVersion or game:HttpGet("http://setup.roblox.com/versionQTStudio")
 		end
 		
+		-- Fetch external deps
 		intro.SetProgress("Fetching API",0.35)
 		API = Main.FetchAPI()
 		Lib.FastWait()
-		intro.SetProgress("Fetching RMD",0.2)
+		intro.SetProgress("Fetching RMD",0.5)
 		RMD = Main.FetchRMD()
 		Lib.FastWait()
 		
+		-- Save external deps locally if needed
+		if Main.Elevated and env.writefile and not Main.LocalDepsUpToDate() then
+			env.writefile("dex/deps_version.dat",Main.ClientVersion.."\n"..Main.RobloxVersion)
+			env.writefile("dex/rbx_api.dat",Main.RawAPI)
+			env.writefile("dex/rbx_rmd.dat",Main.RawRMD)
+		end
 		
+		-- Load other modules
 		intro.SetProgress("Loading Modules",0.75)
 		Main.AppControls.Lib.InitDeps(Main.GetInitDeps()) -- Missing deps now available
 		Main.LoadModules()
